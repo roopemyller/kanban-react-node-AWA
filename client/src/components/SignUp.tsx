@@ -6,9 +6,39 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import MuiCard from '@mui/material/Card'
 import {Link} from 'react-router-dom'
+import { useState } from 'react'
 
+// User interface
+interface User {
+    _id: string
+    name: string
+    email: string
+    password: string
+  }
+
+// Signup form
 const SignUp = () => {
     
+    // States for users and signup form fields
+    const [users, setUsers] = useState<User[]>([]);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    // Add user function, called when form is submitted
+    const addUser = async () => {
+        const response = await fetch('http://localhost:5000/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, email, password }),
+        });
+        const newUser = await response.json()
+        console.log(newUser)
+        setUsers([...users, newUser])
+      };
+
     return (
         <>
         <MuiCard variant='outlined'>
@@ -28,6 +58,7 @@ const SignUp = () => {
                     autoComplete='name'
                     autoFocus
                     variant='outlined'
+                    onChange={e => setName(e.target.value)}
                 />
 
                 <FormLabel>
@@ -41,6 +72,7 @@ const SignUp = () => {
                     placeholder='Your Email'
                     autoComplete='email'
                     variant='outlined'
+                    onChange={e => setEmail(e.target.value)}
                 />
                 
                 <FormLabel>
@@ -54,9 +86,10 @@ const SignUp = () => {
                     placeholder='Your Password'
                     autoComplete='new-password'
                     variant='outlined'
+                    onChange={e => setPassword(e.target.value)}
                 />
 
-                <Button type='submit' variant='contained'>Register</Button>
+                <Button type='submit' variant='contained' onClick={addUser}>Register</Button>
 
                 <Divider>
                     <Typography sx={{ color: 'text.secondary' }}>or</Typography>

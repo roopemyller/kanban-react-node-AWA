@@ -8,10 +8,14 @@ import MuiCard from '@mui/material/Card'
 import Link from '@mui/material/Link';
 import {Link as RouterLink} from 'react-router-dom'
 
+
+// Login form
 const Login = () => {
     
+
+  // If you press Forgot password link
   const forgotPassword = () => {
-    alert("Vinkki: Se on se salasana jonka laitoit tähän joskus ;)")
+    alert("Hint: it is your password!")
   }
 
     return (

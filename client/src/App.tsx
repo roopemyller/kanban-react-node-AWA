@@ -5,7 +5,7 @@ import Login from './components/Login'
 import SignUp from './components/SignUp'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
-const App = () => {
+const App: React.FC = () => {
 
   return (
     <>
