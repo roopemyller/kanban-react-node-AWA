@@ -5,40 +5,45 @@ import FormLabel from '@mui/material/FormLabel'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import MuiCard from '@mui/material/Card'
-import {Link} from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 import { useState } from 'react'
-
-// User interface
-interface User {
-    _id: string
-    name: string
-    email: string
-    password: string
-  }
 
 // Signup form
 const SignUp = () => {
-    
+    const navigate = useNavigate();
     // States for users and signup form fields
-    const [users, setUsers] = useState<User[]>([]);
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
 
     // Add user function, called when form is submitted
     const addUser = async () => {
-        const response = await fetch('http://localhost:5000/api/users', {
+        const response = await fetch('http://localhost:3000/api/user/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ name, email, password }),
-        });
-        const newUser = await response.json()
-        console.log(newUser)
-        setUsers([...users, newUser])
-      };
+        })
 
+        if(response.ok){
+            /* 
+            If response ok
+            - get the data (created new user)
+            - set form empty
+            - change page to home
+            */
+            const newUser = await response.json()
+            console.log(newUser)
+            setName('')
+            setEmail('')
+            setPassword('')
+            navigate('/login')
+          }else{
+            setError('Error trying to sign up')
+          }
+      }
     return (
         <>
         <MuiCard variant='outlined'>
@@ -46,6 +51,12 @@ const SignUp = () => {
                 <Typography variant='h3'>
                     Sign Up
                 </Typography>
+
+                {error && (
+                  <Typography color="error" textAlign="center">
+                    {error}
+                  </Typography>
+                )}
 
                 <FormLabel>
                     Name

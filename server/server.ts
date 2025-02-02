@@ -1,11 +1,15 @@
-import express from 'express'
 import mongoose, { Connection } from 'mongoose'
 import cors from 'cors'
+import router from "./src/index"
+import morgan from 'morgan'
+import dotenv from "dotenv"
+import express, {Express} from "express"
 
-import { User } from './models/User'
 
-const app = express()
-const port = 5000
+dotenv.config()
+
+const app: Express = express()
+const port: number = parseInt(process.env.PORT as string) || 3001
 
 // Middleware
 app.use(cors())
@@ -18,37 +22,14 @@ mongoose.Promise = Promise
 const db: Connection = mongoose.connection
 db.on("error", console.error.bind(console, "MongoDB connection error"))
 
+app.use(express.json())
+app.use(express.urlencoded({extended: false}))
+app.use(morgan("dev"))
 
-// Define routes
-app.get('/', (req, res) => {
-  res.send('Hello from the server!')
-})
 
-// POST: Add a new user
-app.post('/api/users', async(req, res) => {
-    try {
-        const { name, email, password } = req.body
-        const user = new User({ name, email, password })
-        await user.save();
-        res.status(201).json(user);
-        console.log("User created successfully!")
-    } catch (error) {
-        res.status(500).json({ message: 'Error creating user', error });
-        console.log("Error creatign a user!")
-    }
-})
+//Define router
 
-// GET: Fetch all users
-app.get('/api/users', async (req, res) => {
-  try {
-    const users = await User.find()
-    res.status(200).json(users)
-    console.log("Users fetched successfully!")
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching users', error })
-    console.log("Error while fetching users!")
-  }
-})
+app.use("/", router)
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`)
