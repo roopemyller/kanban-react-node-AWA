@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import {Link} from 'react-router-dom'
+import Board from './Board'
 
 const Home = () => {
   const [userName, setUserName] = useState('')
@@ -13,8 +15,17 @@ const Home = () => {
 
   return (
     <>
-      <h1>Hello {userName || ''}</h1>
-      <h2>Here is a Kanban board</h2>
+      <h2>{userName ? `Hello ${userName}` : 'Log in to see Kanban Board'}</h2>
+      
+      {/* Show login button if user is not logged in */}
+      {!userName && (
+        <Link to="/login">
+          <button style={{ cursor: 'pointer' }}>Login</button>
+        </Link>
+      )}
+      {userName && (
+        <Board></Board>
+      )}
     </>
   )
 }

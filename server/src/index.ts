@@ -2,12 +2,18 @@ import {Request, Response, Router} from "express"
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken"
 
-import { User } from '../models/User'
-
 import inputValidation from './validators/inputValidation'
 import { validationResult } from 'express-validator'
 import { authenticateUser } from './middleware/validateToken'
+
+import { User } from '../models/User'
+import { Column } from '../models/Column';
+import { Board } from '../models/Board';
+import { Types } from "mongoose";
+
+
 const router: Router = Router()
+
 // Define routes
 router.get('/', (req, res) => {
     res.send('Hello from the server!')
@@ -89,6 +95,71 @@ router.post('/api/user/login', inputValidation.login, async (req: Request, res: 
     }
 })
 
+// POST: Create a board
+router.post('/api/boards/add', authenticateUser, async(req: Request, res:Response) => {
+    try {
+        const { title } = req.body
+        const userId = req.user._id
 
+        const existingBoard = await Board.findOne({ userId })
+        if(existingBoard){
+            res.status(400).json({message: "User already has a board"})
+            console.log("User already has a board")
+            return
+        }
+        const newBoard = new Board({ title, userId })
+        await newBoard.save()
+
+        res.status(201).json(newBoard)
+    }catch(error){
+        res.status(500).json({error: 'Server error'})
+    }
+})
+
+// GET: Get users board
+router.get('/api/boards/get', authenticateUser, async (req:Request, res:Response) => {
+    try {
+        const userId = req.user._id
+
+        console.log('User ID from token:', userId)
+
+        const boards = await Board.find({ userId }).populate('columns')
+
+        if (!boards.length) {
+            res.status(404).json({ message: 'No board found' })
+            console.log("No Board Found")
+            return
+        }
+
+        res.json(boards)
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' })
+    }
+})
+
+// POST: Create a column
+router.post('/api/columns/add', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const { title, boardId } = req.body
+        const userId = req.user._id
+
+        const board = await Board.findOne({ _id: boardId, userId })
+        if (!board) {
+            res.status(403).json({ message: 'Not authorized' })
+            console.log("Not authorized")
+            return
+        }
+
+        const column = new Column({ title, boardId })
+        await column.save()
+
+        board.columns.push(column._id as Types.ObjectId)
+        await board.save()
+
+        res.status(201).json(column)
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' })
+    }
+})
 
 export default router

@@ -5,6 +5,7 @@ import Home from './components/Home'
 import Login from './components/Login'
 import SignUp from './components/SignUp'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BoardProvider } from './context/BoardContext'
 
 const App: React.FC = () => {
 
@@ -18,6 +19,7 @@ const App: React.FC = () => {
 
   return (
     <>
+    <BoardProvider>
       <BrowserRouter>
       <Header setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn}/>
       <Routes>
@@ -32,6 +34,7 @@ const App: React.FC = () => {
           </>} />
       </Routes>
     </BrowserRouter>
+    </BoardProvider>
     </>
   )
 }

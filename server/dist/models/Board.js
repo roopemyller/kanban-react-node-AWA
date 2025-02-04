@@ -33,13 +33,13 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Column = void 0;
+exports.Board = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-let columnSchema = new mongoose_1.Schema({
+let boardSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
-    boardId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Board', required: true },
+    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
+    columns: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Column' }],
     createdAt: { type: Date, default: Date.now },
-    //tickets: [{ type: Schema.Types.ObjectId, ref: "Ticket" }],
 });
-const Column = mongoose_1.default.model('Column', columnSchema);
-exports.Column = Column;
+const Board = mongoose_1.default.model('Board', boardSchema);
+exports.Board = Board;

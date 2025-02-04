@@ -61,6 +61,7 @@ const Login = ({ setIsLoggedIn }: LoginProps) => {
 
       // Change to Home page
       navigate('/')
+      window.location.reload()
     }else{
       setError('Invalid email or password')
     }
