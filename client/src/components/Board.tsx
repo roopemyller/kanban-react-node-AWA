@@ -66,10 +66,7 @@ const Board = () => {
             </div>
             <div style={{ flex: 1, display: 'flex', gap: '20px', overflowX: 'auto'}}>
                 {board.columns.map((col) => (
-                    <div  style={{ flex: 1, minWidth: '200px' }}>
-                        <Column key={col._id} title={col.title} />
-                    
-                    </div>
+                    <Column key={col._id} title={col.title} />
                 ))}
             </div>
             {isPopupOpen && (
