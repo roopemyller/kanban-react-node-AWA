@@ -3,8 +3,7 @@ import {Link} from 'react-router-dom'
 import Board from './Board'
 import { fetchBoard } from '../context/BoardContext'
 import { useBoard } from '../context/BoardContext'
-
-
+import Button from '@mui/material/Button'
 
 const Home = () => {
   const [userName, setUserName] = useState('')
@@ -27,7 +26,7 @@ const Home = () => {
         {/* Show login button if user is not logged in */}
         {!userName && (
           <Link to="/login">
-            <button style={{ cursor: 'pointer' }}>Login</button>
+            <Button variant='contained' style={{ cursor: 'pointer' }}>Login</Button>
           </Link>
         )}
         {userName && (

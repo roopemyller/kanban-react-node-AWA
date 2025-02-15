@@ -162,4 +162,26 @@ router.post('/api/columns/add', authenticateUser, async(req:Request, res:Respons
     }
 })
 
+// DELETE: Delete column by id
+router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const columnId = req.params.id
+
+        const column = await Column.findByIdAndDelete(columnId)
+        if(!column){
+            res.status(404).json({message: "Column not found"})
+            return
+        }
+        await Board.updateOne(
+            { _id: column.boardId },
+            { $pull: { columns: column._id } }
+        )
+
+        res.status(200).json({ message: 'Column deleted successfully' })
+    } catch (error) {
+        console.error('Error deleting column:', error)
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
 export default router
