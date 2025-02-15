@@ -28,6 +28,24 @@ export const useBoard = () => {
     return context
 }
 
+export const fetchBoard = async (setBoard: React.Dispatch<React.SetStateAction<IBoard | null>>) => {
+    try {
+        const response = await fetch('http://localhost:3000/api/boards/get', {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+        })
+        const data = await response.json()
+        console.log("Get board data: ", data)
+        if (response.ok) {
+            setBoard(data[0])
+        }
+    } catch (error) {
+        console.error('Error fetching board:', error)
+    }
+}
+
 export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [board, setBoard] = useState<IBoard | null>(null)
 
@@ -58,3 +76,4 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         </BoardContext.Provider>
     );
 }
+

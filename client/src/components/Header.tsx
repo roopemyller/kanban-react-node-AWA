@@ -6,20 +6,21 @@ import Button from '@mui/material/Button'
 import {Link, useNavigate} from 'react-router-dom'
 
 interface HeaderProps {
-    isLoggedIn: boolean;
-    setIsLoggedIn: (value: boolean) => void;
+    isLoggedIn: boolean
+    setIsLoggedIn: (value: boolean) => void
+    setBoard: (value: null) => void
 }
 
 // Header
-const Header = ({ isLoggedIn, setIsLoggedIn }: HeaderProps) => {
+const Header = ({ isLoggedIn, setIsLoggedIn, setBoard }: HeaderProps) => {
     const navigate = useNavigate()
 
-    
     // Handle user logout
     const handleLogout = () => {
         localStorage.removeItem('token')
         localStorage.removeItem('userName')
         setIsLoggedIn(false)
+        setBoard(null)
         navigate('/login')
     }
     return (

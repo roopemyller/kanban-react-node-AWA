@@ -5,23 +5,22 @@ import Home from './components/Home'
 import Login from './components/Login'
 import SignUp from './components/SignUp'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { BoardProvider } from './context/BoardContext'
+import { BoardProvider, useBoard } from './context/BoardContext'
 
-const App: React.FC = () => {
-
+const AppContent: React.FC = () => {
+  const { setBoard } = useBoard()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+
   // Get user token on page load
   useEffect(() => {
     const token = localStorage.getItem('token')
     setIsLoggedIn(!!token) //If token exists, user is logged in
 }, [])
 
-
   return (
     <>
-    <BoardProvider>
-      <BrowserRouter>
-      <Header setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn}/>
+    <BrowserRouter>
+      <Header setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} setBoard={setBoard}/>
       <Routes>
         <Route path='/' element={<>
           <Home/>
@@ -34,8 +33,15 @@ const App: React.FC = () => {
           </>} />
       </Routes>
     </BrowserRouter>
-    </BoardProvider>
     </>
+  )
+}
+
+const App: React.FC = () => {
+  return (
+    <BoardProvider>
+      <AppContent />
+    </BoardProvider>
   )
 }
 
