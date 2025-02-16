@@ -4,16 +4,17 @@ import mongoose, {Document, Schema} from "mongoose"
 
 interface ITicket extends Document {
     title: string
-    desc: string
+    description: string
     date: Date
-    labels: string[]
+    columnId: string
+
 }
 
-let ticketSchema: Schema = new Schema({
+const ticketSchema: Schema = new Schema({
     title: {type: String, required: true},
-    desc: {type: String, required: false},
-    date: {type: Date, required: false},
-    labels: {type: [String], required: false}
+    description: {type: String, required: false},
+    date: {type: Date, default: Date.now },
+    columnId: { type: Schema.Types.ObjectId, ref: 'Column', required: true },
 })
 
 const Ticket: mongoose.Model<ITicket> = mongoose.model<ITicket>('Ticket', ticketSchema)

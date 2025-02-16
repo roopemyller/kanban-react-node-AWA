@@ -12,6 +12,7 @@ const validateToken_1 = require("./middleware/validateToken");
 const User_1 = require("../models/User");
 const Column_1 = require("../models/Column");
 const Board_1 = require("../models/Board");
+const Ticket_1 = require("../models/Ticket");
 const router = (0, express_1.Router)();
 // Define routes
 router.get('/', (req, res) => {
@@ -106,8 +107,13 @@ router.post('/api/boards/add', validateToken_1.authenticateUser, async (req, res
 router.get('/api/boards/get', validateToken_1.authenticateUser, async (req, res) => {
     try {
         const userId = req.user._id;
-        console.log('User ID from token:', userId);
-        const boards = await Board_1.Board.find({ userId }).populate('columns');
+        const boards = await Board_1.Board.find({ userId }).populate({
+            path: 'columns',
+            populate: {
+                path: 'tickets',
+                model: 'Ticket'
+            }
+        });
         if (!boards.length) {
             res.status(404).json({ message: 'No board found' });
             console.log("No Board Found");
@@ -154,6 +160,26 @@ router.delete('/api/columns/:id', validateToken_1.authenticateUser, async (req, 
     }
     catch (error) {
         console.error('Error deleting column:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+// POST: Add new ticket to a column
+router.post('/api/tickets/add', validateToken_1.authenticateUser, async (req, res) => {
+    try {
+        const { title, description, columnId } = req.body;
+        if (!title || !columnId) {
+            res.status(400).json({ error: "Title and columnId are required" });
+            return;
+        }
+        const newTicket = await Ticket_1.Ticket.create({ title, description, columnId });
+        await Column_1.Column.findByIdAndUpdate(columnId, {
+            $push: { tickets: newTicket._id }
+        });
+        const updatedColumn = await Column_1.Column.findById(columnId).populate('tickets');
+        res.status(200).json({ ticket: newTicket, updatedColumn });
+    }
+    catch (error) {
+        console.error('Error adding ticket:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

@@ -39,7 +39,7 @@ let columnSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     boardId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Board', required: true },
     createdAt: { type: Date, default: Date.now },
-    //tickets: [{ type: Schema.Types.ObjectId, ref: "Ticket" }],
+    tickets: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Ticket" }],
 });
 const Column = mongoose_1.default.model('Column', columnSchema);
 exports.Column = Column;

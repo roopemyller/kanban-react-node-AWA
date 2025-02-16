@@ -11,7 +11,8 @@ interface ColumnProps {
 const Column = ({ id, title }: ColumnProps) => {
     const [isPopupOpen, setIsPopupOpen] = useState(false)
     const { board, setBoard } = useBoard();
-    
+    const tickets = board?.columns.find(col => col._id === id)?.tickets ||[]
+
     const removeColumn = async () => {
         try {
             const response = await fetch(`http://localhost:3000/api/columns/${id}`, {
@@ -22,17 +23,17 @@ const Column = ({ id, title }: ColumnProps) => {
             })
 
             if (response.ok && board) {
-                // Update the board state by filtering out the deleted column
                 setBoard({
                     ...board,
-                    _id: board._id ?? '', // Ensure `_id` is always a string
-                    title: board.title ?? '', // Ensure `title` is always a string
+                    _id: board._id ?? '',
+                    title: board.title ?? '',
                     columns: board.columns.filter((col) => col._id !== id),
                 });            }
         } catch (error) {
             console.error('Error removing column:', error)
         }
     }
+
     
     return (
         <div style={{ padding: '10px', border: '1px solid black', minHeight: '400px', flexGrow: 1,borderRadius: '5px'}}>
@@ -43,7 +44,16 @@ const Column = ({ id, title }: ColumnProps) => {
             </div>
 
             <div>
-                Here is some tasks
+                {tickets.length > 0 ? (
+                    tickets.map(ticket => (
+                        <div key={ticket._id} style={{ padding: '10px', border: '1px solid grey', borderRadius: '5px', marginBottom: '10px' }}>
+                            <h4>{ticket.title}</h4>
+                            <p>{ticket.description}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No tickets yet</p>
+                )}
             </div>
             {isPopupOpen && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

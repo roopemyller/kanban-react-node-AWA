@@ -4,6 +4,7 @@ import { createContext, ReactNode, useContext, useEffect, useState } from 'react
 interface IColumn {
     _id: string
     title: string
+    tickets: ITicket[]
 }
 
 interface IBoard {
@@ -11,6 +12,11 @@ interface IBoard {
     title: string
     columns: IColumn[]
 }
+ interface ITicket {
+    _id: string
+    title: string
+    description: string;
+ }
 
 // Define the context type
 interface BoardContextType {

@@ -107,7 +107,7 @@ const Login = ({ setIsLoggedIn }: LoginProps) => {
                 <TextField
                     required
                     fullWidth
-                    id="email"
+                    id="password"
                     placeholder='Your Password'
                     type='password'
                     autoComplete='current-password'

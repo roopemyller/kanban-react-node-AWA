@@ -35,11 +35,11 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ticket = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-let ticketSchema = new mongoose_1.Schema({
+const ticketSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
-    desc: { type: String, required: false },
-    date: { type: Date, required: false },
-    labels: { type: [String], required: false }
+    description: { type: String, required: false },
+    date: { type: Date, default: Date.now },
+    columnId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Column', required: true },
 });
 const Ticket = mongoose_1.default.model('Ticket', ticketSchema);
 exports.Ticket = Ticket;

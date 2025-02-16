@@ -10,6 +10,7 @@ import { User } from '../models/User'
 import { Column } from '../models/Column';
 import { Board } from '../models/Board';
 import { Types } from "mongoose";
+import { Ticket } from "../models/Ticket";
 
 
 const router: Router = Router()
@@ -120,17 +121,19 @@ router.post('/api/boards/add', authenticateUser, async(req: Request, res:Respons
 router.get('/api/boards/get', authenticateUser, async (req:Request, res:Response) => {
     try {
         const userId = req.user._id
-
-        console.log('User ID from token:', userId)
-
-        const boards = await Board.find({ userId }).populate('columns')
+        const boards = await Board.find({ userId }).populate({
+            path: 'columns',
+            populate: {
+                path: 'tickets',
+                model: 'Ticket'
+            }
+        })
 
         if (!boards.length) {
             res.status(404).json({ message: 'No board found' })
             console.log("No Board Found")
             return
         }
-
         res.json(boards)
     } catch (error) {
         res.status(500).json({ error: 'Server error' })
@@ -142,7 +145,6 @@ router.post('/api/columns/add', authenticateUser, async(req:Request, res:Respons
     try {
         const { title, boardId } = req.body
         const userId = req.user._id
-
         const board = await Board.findOne({ _id: boardId, userId })
         if (!board) {
             res.status(403).json({ message: 'Not authorized' })
@@ -180,6 +182,28 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
         res.status(200).json({ message: 'Column deleted successfully' })
     } catch (error) {
         console.error('Error deleting column:', error)
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
+// POST: Add new ticket to a column
+router.post('/api/tickets/add', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const { title, description, columnId } = req.body
+
+        if (!title || !columnId) {
+            res.status(400).json({ error: "Title and columnId are required" })
+            return
+        }
+        const newTicket = await Ticket.create({title, description, columnId})
+        await Column.findByIdAndUpdate(columnId, {
+            $push: {tickets: newTicket._id}
+        })
+
+        const updatedColumn = await Column.findById(columnId).populate('tickets')
+        res.status(200).json({ ticket: newTicket, updatedColumn })
+    } catch (error) {
+        console.error('Error adding ticket:', error)
         res.status(500).json({ message: 'Server error' })
     }
 })
