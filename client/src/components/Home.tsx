@@ -4,12 +4,12 @@ import Board from './Board'
 import { fetchBoard } from '../context/BoardContext'
 import { useBoard } from '../context/BoardContext'
 import Button from '@mui/material/Button'
+import { Container, Typography, Box } from '@mui/material'
 
 const Home = () => {
   const [userName, setUserName] = useState('')
   const { setBoard } = useBoard()
   
-
   useEffect(() => {
     // Get stored name from localStorage
     const userName = localStorage.getItem('userName')
@@ -20,9 +20,9 @@ const Home = () => {
   }, [])
 
   return (
-    <div>
-      <h2 style={{textAlign: 'left'}}>{userName ? `Hello ${userName}` : 'Log in to see Kanban Board'}</h2>
-      <div>
+    <Container maxWidth="xl" sx={{marginTop: 6}}>
+      <Typography variant="h5" sx={{textAlign: 'left'}}>{userName ? `Hello ${userName}` : 'Log in to see Kanban Board'}</Typography>
+      <Box>
         {/* Show login button if user is not logged in */}
         {!userName && (
           <Link to="/login">
@@ -32,8 +32,8 @@ const Home = () => {
         {userName && (
           <Board></Board>
         )}
-      </div>
-    </div>
+      </Box>
+    </Container>
   )
 }
 

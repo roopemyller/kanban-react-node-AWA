@@ -3,6 +3,8 @@ import Button from '@mui/material/Button'
 import { useState } from 'react';
 import { useBoard } from '../context/BoardContext';
 
+import Ticket from './Ticket';
+
 interface ColumnProps {
     id: string;
     title: string;
@@ -46,10 +48,7 @@ const Column = ({ id, title }: ColumnProps) => {
             <div>
                 {tickets.length > 0 ? (
                     tickets.map(ticket => (
-                        <div key={ticket._id} style={{ padding: '10px', border: '1px solid grey', borderRadius: '5px', marginBottom: '10px' }}>
-                            <h4>{ticket.title}</h4>
-                            <p>{ticket.description}</p>
-                        </div>
+                        <Ticket key={ticket._id} id={ticket._id} title={ticket.title} description={ticket.description} columnId={id}/>
                     ))
                 ) : (
                     <p>No tickets yet</p>

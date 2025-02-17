@@ -3,9 +3,8 @@ import { useState } from 'react'
 import Column from './Column'
 import CheckIcon from '@mui/icons-material/Check'
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
+import { MenuItem, Container, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Typography } from "@mui/material";
+
 
 
 const Board = () => {
@@ -89,32 +88,36 @@ const Board = () => {
 
     if (!board) {
         return (
-            <div style={{ textAlign: 'left'}}>
-                <h3>Start by creating your own Kanban Board!</h3>
-                <input type="text" value={boardName} onChange={(e) => setBoardName(e.target.value)} placeholder="Board Name" style={{ padding: '10px', marginRight: '10px', borderRadius: '5px' }}
-                />
-                <Button onClick={createBoard} variant='contained'>Create Board</Button>
-            </div>
+            <Container maxWidth="xl" sx={{  padding: '1', border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
+                <Box style={{ textAlign: 'left', margin: 20}}>
+                    <Typography variant='h6'>Start by creating your own Kanban Board!</Typography>
+                    <br/>
+                    <TextField
+                        variant="outlined" value={boardName} onChange={(e) => setBoardName(e.target.value)} label="Board Name" autoFocus fullWidth
+                    />
+                    <br/><br/>
+                    <Button onClick={createBoard} variant='contained'>Create Board</Button>
+                </Box>
+            </Container>
         )
     }
 
     return (
-        <div style={{ height: '75vh', display: 'flex', flexDirection: 'column', padding: '10px', border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
-            
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                    <h2 style={{marginLeft: '20px'}}>{board.title}</h2>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <Button sx={{marginLeft: '20px', marginRight: '20px'}} variant="contained" onClick={() => setIsTicketPopupOpen(true)}>Add Ticket</Button>
-                    <Button sx={{marginLeft: '20px', marginRight: '20px'}} variant="contained" onClick={() => setIsColumnPopupOpen(true)}>Add Column</Button>
-                </div>
-            </div>
-            <div style={{ flex: 1, display: 'flex', gap: '20px', overflowX: 'auto'}}>
+        <Container maxWidth="xl" sx={{  padding: '2', border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', margin: 2, justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
+                    <Typography variant='h4'>{board.title}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    <Button sx={{marginLeft: 2, marginRight: 2}} variant="contained" onClick={() => setIsTicketPopupOpen(true)}>Add Ticket</Button>
+                    <Button variant="contained" onClick={() => setIsColumnPopupOpen(true)}>Add Column</Button>
+                </Box>
+            </Box>
+            <Box sx={{ display: "flex", overflowX: "auto", gap: 2, padding: 2, minHeight: "80vh", "@media (max-width: 600px)": { flexDirection: "column", alignItems: "center", }, }}>
                 {board.columns.map((col) => (
                     <Column key={col._id} id={col._id} title={col.title} />
                 ))}
-            </div>
+            </Box>
 
             {/* If "Add column" button is pressed, a popup is presented with option to give column a name and add it*/}
             {isColumnPopupOpen && (
@@ -159,7 +162,7 @@ const Board = () => {
                 </div>
             </div>
             )}
-        </div>
+        </Container>
     )
 }
 

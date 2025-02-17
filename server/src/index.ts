@@ -208,4 +208,26 @@ router.post('/api/tickets/add', authenticateUser, async(req:Request, res:Respons
     }
 })
 
+// DELETE: Delete ticket by id
+router.delete('/api/tickets/:id', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const ticketId = req.params.id
+
+        const ticket = await Ticket.findByIdAndDelete(ticketId)
+        if(!ticket){
+            res.status(404).json({message: "Ticket not found"})
+            return
+        }
+        await Column.updateOne(
+            { _id: ticket.columnId },
+            { $pull: { tickets: ticket._id } }
+        )
+
+        res.status(200).json({ message: 'Ticket deleted successfully' })
+    } catch (error) {
+        console.error('Error deleting ticket:', error)
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
 export default router
