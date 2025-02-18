@@ -1,1 +1,3 @@
 /server/node_modules
+/server/pnpm-lock.yaml
+/client/pnpm-lock.yaml

@@ -1,8 +1,7 @@
 import DeleteIcon from '@mui/icons-material/Delete'
-import Button from '@mui/material/Button'
+import { Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
 import { useState } from 'react';
 import { useBoard } from '../context/BoardContext';
-
 import Ticket from './Ticket';
 
 interface ColumnProps {
@@ -38,33 +37,34 @@ const Column = ({ id, title }: ColumnProps) => {
 
     
     return (
-        <div style={{ padding: '10px', border: '1px solid black', minHeight: '400px', flexGrow: 1,borderRadius: '5px'}}>
+        <Box sx={{ p: 2, border: "1px solid black", minHeight: 400, flexGrow: 1, borderRadius: 1 }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <h3 style={{ textAlign: 'center' }}>{title}</h3>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                <Typography variant='h5' align="left">{title}</Typography>
                 <Button onClick={() => setIsPopupOpen(true)} variant="outlined" color="error" sx={{margin: '10px'}} size="small"><DeleteIcon/></Button>
-            </div>
+            </Box>
 
-            <div>
+            <Box>
                 {tickets.length > 0 ? (
                     tickets.map(ticket => (
-                        <Ticket key={ticket._id} id={ticket._id} title={ticket.title} description={ticket.description} columnId={id}/>
+                        <Ticket key={ticket._id} id={ticket._id} title={ticket.title} description={ticket.description} columnId={id} backgroundColor={ticket.backgroundColor}/>
                     ))
                 ) : (
-                    <p>No tickets yet</p>
+                    <Typography variant="body1">No tickets yet</Typography>
                 )}
-            </div>
-            {isPopupOpen && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ background: 'rgb(37, 37, 37)', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                    <h2>Sure you want to remove column?</h2>
-                    <br/>
-                    <Button variant="contained" color="success" sx={{margin: '5px'}} onClick={removeColumn}>Remove</Button>
-                    <Button variant="outlined" color="error" sx={{margin: '5px'}} onClick={() => setIsPopupOpen(false)}>Cancel</Button>
-                </div>
-            </div>
-            )}
-        </div>
+            </Box>
+
+            <Dialog open={isPopupOpen} onClose={() => setIsPopupOpen(false)} fullWidth maxWidth="sm">
+                <DialogTitle>Sure you want to delete this column?</DialogTitle>
+                <DialogContent>
+                    <Typography>Deleting column named: {title}</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={removeColumn} variant="contained" color="success">Delete</Button>
+                    <Button onClick={() => setIsPopupOpen(false)} variant="outlined" color="error">Cancel</Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
     )
 }
 

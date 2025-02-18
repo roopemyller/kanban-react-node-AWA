@@ -16,6 +16,7 @@ interface IBoard {
     _id: string
     title: string
     description: string;
+    backgroundColor: string
  }
 
 // Define the context type

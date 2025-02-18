@@ -37,9 +37,10 @@ exports.Ticket = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const ticketSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
-    description: { type: String, required: false },
+    description: { type: String },
     date: { type: Date, default: Date.now },
     columnId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Column', required: true },
+    backgroundColor: { type: String, default: '#3b3b3b' }
 });
 const Ticket = mongoose_1.default.model('Ticket', ticketSchema);
 exports.Ticket = Ticket;

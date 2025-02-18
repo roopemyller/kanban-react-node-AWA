@@ -189,13 +189,13 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
 // POST: Add new ticket to a column
 router.post('/api/tickets/add', authenticateUser, async(req:Request, res:Response) => {
     try {
-        const { title, description, columnId } = req.body
+        const { title, description, columnId, backgroundColor } = req.body
 
         if (!title || !columnId) {
             res.status(400).json({ error: "Title and columnId are required" })
             return
         }
-        const newTicket = await Ticket.create({title, description, columnId})
+        const newTicket = await Ticket.create({title, description, columnId, backgroundColor})
         await Column.findByIdAndUpdate(columnId, {
             $push: {tickets: newTicket._id}
         })

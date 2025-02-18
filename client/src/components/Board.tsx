@@ -1,11 +1,9 @@
 import { useBoard } from '../context/BoardContext'
 import { useState } from 'react'
 import Column from './Column'
-import CheckIcon from '@mui/icons-material/Check'
-import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb'
-import { MenuItem, Container, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Grid, Typography } from "@mui/material";
-
-
+import { MenuItem, Container, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
+import ReactQuill from "react-quill-new";
+import "react-quill/dist/quill.snow.css";
 
 const Board = () => {
     const { board, setBoard } = useBoard()
@@ -13,10 +11,13 @@ const Board = () => {
     const [columnTitle, setColumnTitle] = useState('')
     const [ticketTitle, setTicketTitle] = useState('')
     const [ticketDesc, setTicketDesc] = useState('')
+    const [ticketColor, setTicketColor] = useState<string>('#3b3b3b')
     const [isColumnPopupOpen, setIsColumnPopupOpen] = useState(false)
     const [isTicketPopupOpen, setIsTicketPopupOpen] = useState(false)
-    const [selectedColumnId, setSelectedColumnId] = useState<string>('');
+    const [selectedColumnId, setSelectedColumnId] = useState<string>('')
 
+    const colorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
+    
     const createBoard = async () => {
         const response = await fetch('http://localhost:3000/api/boards/add', {
             method: 'POST',
@@ -64,6 +65,7 @@ const Board = () => {
                 title: ticketTitle,
                 description: ticketDesc,
                 columnId: selectedColumnId,
+                backgroundColor: ticketColor,
             }),
         })
 
@@ -79,6 +81,7 @@ const Board = () => {
             }))
             setTicketTitle('')
             setTicketDesc('')
+            setTicketColor('#ffffff')
             setSelectedColumnId('')
             setIsTicketPopupOpen(false)
         }else {
@@ -106,7 +109,7 @@ const Board = () => {
         <Container maxWidth="xl" sx={{  padding: '2', border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', margin: 2, justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
-                    <Typography variant='h4'>{board.title}</Typography>
+                    <Typography variant='h4' align="left">{board.title}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                     <Button sx={{marginLeft: 2, marginRight: 2}} variant="contained" onClick={() => setIsTicketPopupOpen(true)}>Add Ticket</Button>
@@ -120,48 +123,61 @@ const Board = () => {
             </Box>
 
             {/* If "Add column" button is pressed, a popup is presented with option to give column a name and add it*/}
-            {isColumnPopupOpen && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ background: 'rgb(72, 72, 72)', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                    <h2>Add Column</h2>
-                    <TextField
-                        variant="outlined" value={columnTitle} onChange={(e) => setColumnTitle(e.target.value)} label="Column Title" autoFocus fullWidth
-                    />
-                    <br/><br/>
-                    <Button sx={{margin: '5px'}} variant="contained" color="success" onClick={addColumn}><CheckIcon/></Button>
-                    <Button sx={{margin: '5px'}} variant="outlined" color="error" onClick={() => { setIsColumnPopupOpen(false); setColumnTitle('')}}><DoNotDisturbIcon/></Button>
-                </div>
-            </div>
-            )}
+            <Dialog open={isColumnPopupOpen} onClose={() => setIsColumnPopupOpen(false)} fullWidth maxWidth="sm">
+                <DialogTitle>Add New Column</DialogTitle>
+                <DialogContent>
+                    <TextField autoFocus margin="dense" label="Title" fullWidth value={columnTitle} onChange={(e) => setColumnTitle(e.target.value)}/>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={addColumn} variant="contained" color="success">Add</Button>
+                    <Button onClick={() => setIsColumnPopupOpen(false)} variant="outlined" color="error">Cancel</Button>
+                </DialogActions>
+            </Dialog>
 
             {/* If "Add ticket" button is pressed, a popup is presented with option to give ticket a name and add it*/}
-            {isTicketPopupOpen && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ background: 'rgb(72, 72, 72)', padding: '20px', borderRadius: '10px', textAlign: 'center' }}>
-                    <h2>Add Ticket</h2>
-                    <TextField
-                        variant="outlined" value={ticketTitle} onChange={(e) => setTicketTitle(e.target.value)} label="Ticket Title" autoFocus fullWidth
+            <Dialog open={isTicketPopupOpen} onClose={() => setIsColumnPopupOpen(false)} fullWidth maxWidth="sm">
+                <DialogTitle>Add New Ticket</DialogTitle>
+                <DialogContent>
+                    <TextField autoFocus margin="dense" label="Title" fullWidth value={ticketTitle} onChange={(e) => setTicketTitle(e.target.value)}/>
+                    <ReactQuill 
+                        placeholder="Description" 
+                        style={{ marginBottom: 10, marginTop: 5 }} 
+                        value={ticketDesc} 
+                        onChange={setTicketDesc} 
                     />
-                    <br/><br/>
-                    <TextField
-                        multiline maxRows={6} variant="outlined" value={ticketDesc} onChange={(e) => setTicketDesc(e.target.value)} label="Ticket Description" fullWidth
-                    />
-                    <br/><br/>
-                    <TextField
-                        id="outlined-select-currency" onChange={(e) => setSelectedColumnId(e.target.value)} select defaultValue="" label="Column" helperText="Please select a column" fullWidth
-                    >
+                    <TextField id="outlined-select" onChange={(e) => setSelectedColumnId(e.target.value)} select defaultValue="" label="Column" helperText="Please select a column" fullWidth>
                         {board.columns.map((col) => (
                             <MenuItem key={col._id} value={col._id}>
                                 {col.title}
                             </MenuItem>
                         ))}
                     </TextField>
-                    <br/><br/>
-                    <Button sx={{margin: '5px'}} variant="contained" color="success" onClick={addTicket}><CheckIcon/></Button>
-                    <Button sx={{margin: '5px'}} variant="outlined" color="error" onClick={() => {setIsTicketPopupOpen(false); setTicketDesc(''); setTicketTitle('')}}><DoNotDisturbIcon/></Button>
-                </div>
-            </div>
-            )}
+
+                    <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
+                        {colorOptions.map((color) => (
+                            <Box
+                                key={color}
+                                sx={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 2,
+                                    backgroundColor: color,
+                                    cursor: 'pointer',
+                                    boxShadow: ticketColor === color ? 2 : 0,
+                                    border: ticketColor === color ? '2px solid #000' : 'none',
+                                }}
+                                onClick={() => setTicketColor(color)}
+                            />
+                        ))}
+                    </Box>
+
+
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={addTicket} variant="contained" color="success">Add</Button>
+                    <Button onClick={() => { setIsTicketPopupOpen(false); setTicketDesc(''); setTicketTitle('')}} variant="outlined" color="error">Cancel</Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     )
 }
