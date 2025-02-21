@@ -1,9 +1,13 @@
 import { useBoard } from '../context/BoardContext'
 import { useState } from 'react'
 import Column from './Column'
-import { MenuItem, Container, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
-import ReactQuill from "react-quill-new";
-import "react-quill/dist/quill.snow.css";
+import { MenuItem, Container, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material"
+import ReactQuill from "react-quill-new"
+import "react-quill/dist/quill.snow.css"
+
+import {DndContext, closestCorners, KeyboardSensor, useSensor, useSensors, MouseSensor } from '@dnd-kit/core'
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+
 
 const Board = () => {
     const { board, setBoard } = useBoard()
@@ -15,9 +19,17 @@ const Board = () => {
     const [isColumnPopupOpen, setIsColumnPopupOpen] = useState(false)
     const [isTicketPopupOpen, setIsTicketPopupOpen] = useState(false)
     const [selectedColumnId, setSelectedColumnId] = useState<string>('')
-
     const colorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
+
+    const mouseSensor = useSensor(MouseSensor, {
+        activationConstraint: {
+            distance: 10,
+        }
+    })
     
+    const sensors = useSensors(mouseSensor, useSensor(KeyboardSensor))
+    
+
     const createBoard = async () => {
         const response = await fetch('http://localhost:3000/api/boards/add', {
             method: 'POST',
@@ -105,6 +117,111 @@ const Board = () => {
         )
     }
 
+    // Handlign the reordering with drag and drop
+    const handleDragEnd = async (event: any) => {
+        const { active, over } = event;
+        if (!over) return;
+    
+        if (active.data.current?.columnId) {
+            // Moving a ticket
+            const activeColumnId = active.data.current.columnId;
+            // When dropping on a column, use the column's id directly
+            const overColumnId = over.data.current?.columnId || over.id;
+            
+            const activeColumn = board.columns.find(col => col._id === activeColumnId);
+            const overColumn = board.columns.find(col => col._id === overColumnId);
+    
+            if (!activeColumn || !overColumn) return;
+    
+            const activeTicket = activeColumn.tickets.find(ticket => ticket._id === active.id);
+            if (!activeTicket) return;
+    
+            let updatedColumns = [...board.columns];
+    
+            if (activeColumn._id === overColumn._id) {
+                // Moving within the same column
+                const columnIndex = updatedColumns.findIndex(col => col._id === activeColumn._id);
+                const updatedTickets = [...activeColumn.tickets];
+                const oldIndex = updatedTickets.findIndex(t => t._id === active.id);
+                
+                // If dropping on a ticket, use its position, otherwise append to the end
+                const newIndex = over.data.current?.columnId 
+                    ? updatedTickets.findIndex(t => t._id === over.id)
+                    : updatedTickets.length;
+    
+                updatedTickets.splice(oldIndex, 1);
+                updatedTickets.splice(newIndex, 0, activeTicket);
+    
+                updatedColumns[columnIndex] = {
+                    ...activeColumn,
+                    tickets: updatedTickets
+                };
+            } else {
+                // Moving between columns
+                const sourceColumnIndex = updatedColumns.findIndex(col => col._id === activeColumn._id);
+                const targetColumnIndex = updatedColumns.findIndex(col => col._id === overColumn._id);
+    
+                // Remove from source column
+                const updatedSourceTickets = activeColumn.tickets.filter(t => t._id !== active.id);
+                updatedColumns[sourceColumnIndex] = {
+                    ...activeColumn,
+                    tickets: updatedSourceTickets
+                };
+    
+                // Add to target column
+                const updatedTargetTickets = [...overColumn.tickets];
+                
+                if (over.data.current?.columnId) {
+                    // Dropping on a specific ticket
+                    const overIndex = updatedTargetTickets.findIndex(t => t._id === over.id);
+                    updatedTargetTickets.splice(overIndex, 0, activeTicket);
+                } else {
+                    // Dropping anywhere on the column - add to the beginning
+                    updatedTargetTickets.unshift(activeTicket);
+                }
+    
+                updatedColumns[targetColumnIndex] = {
+                    ...overColumn,
+                    tickets: updatedTargetTickets
+                };
+            }
+    
+            setBoard({ ...board, columns: updatedColumns });
+        } else {
+            // Moving a column
+            const oldIndex = board.columns.findIndex((col) => col._id === active.id);
+            const newIndex = board.columns.findIndex((col) => col._id === over.id);
+    
+            const newColumns = arrayMove(board.columns, oldIndex, newIndex);
+            setBoard({ ...board, columns: newColumns });
+    
+            const columnOrder = newColumns.map((col) => col._id);
+    
+            try {
+                const response = await fetch('http://localhost:3000/api/columns/reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                    body: JSON.stringify({
+                        boardId: board._id,
+                        columnOrder,
+                    }),
+                });
+    
+                const data = await response.json();
+                if (response.ok) {
+                    console.log('Columns reordered successfully');
+                } else {
+                    console.error('Failed to reorder columns', data);
+                }
+            } catch (error) {
+                console.error('Error sending reordered columns:', error);
+            }
+        }
+    };
+
     return (
         <Container maxWidth="xl" sx={{  padding: '2', border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', margin: 2, justifyContent: 'space-between' }}>
@@ -116,11 +233,17 @@ const Board = () => {
                     <Button variant="contained" onClick={() => setIsColumnPopupOpen(true)}>Add Column</Button>
                 </Box>
             </Box>
-            <Box sx={{ display: "flex", overflowX: "auto", gap: 2, padding: 2, minHeight: "80vh", "@media (max-width: 600px)": { flexDirection: "column", alignItems: "center", }, }}>
-                {board.columns.map((col) => (
-                    <Column key={col._id} id={col._id} title={col.title} />
-                ))}
-            </Box>
+
+            <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
+                <SortableContext items={board.columns.map(col => col._id)} strategy={verticalListSortingStrategy}>
+                    <Box sx={{ display: "flex", overflowX: "auto", gap: 2, padding: 2, minHeight: "80vh", "@media (max-width: 600px)": { flexDirection: "column", alignItems: "center", }, }}>
+                        {board.columns.map((col) => (
+                            <Column key={col._id} id={col._id} title={col.title} />
+                        ))}
+                    </Box>
+                </SortableContext>
+            </DndContext>
+
 
             {/* If "Add column" button is pressed, a popup is presented with option to give column a name and add it*/}
             <Dialog open={isColumnPopupOpen} onClose={() => setIsColumnPopupOpen(false)} fullWidth maxWidth="sm">

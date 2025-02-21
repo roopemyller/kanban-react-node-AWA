@@ -5,6 +5,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { useBoard } from '../context/BoardContext'
 import { Menu, MenuItem, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material";
 
+import { useSortable  } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface TicketProps {
     id: string
@@ -25,6 +27,16 @@ const Ticket = ({ id, title, description, columnId, backgroundColor }: TicketPro
     }
     const handleClose = () => {
         setAnchorEl(null)
+    }
+
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { columnId } });
+    
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        cursor: 'grab',
+        zIndex: isDragging ? 999 : 'auto',
     }
 
     const deleteTicket = async () => {
@@ -58,7 +70,7 @@ const Ticket = ({ id, title, description, columnId, backgroundColor }: TicketPro
 
     
     return (
-        <Box key={id} sx={{ p: 1, border: "1px solid grey", borderRadius: 1, mb: 2, backgroundColor: backgroundColor }}>
+        <Box ref={setNodeRef} style={style} {...attributes} {...listeners} key={id} sx={{ p: 1, border: "1px solid grey", borderRadius: 1, mb: 2, backgroundColor: backgroundColor }}>
             <Box  sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                 <Typography  variant="h6" style={{marginLeft: '20px'}}>{title}</Typography >
                 <IconButton id="basic-button" aria-controls={open ? 'basic-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined} onClick={handleClick}>

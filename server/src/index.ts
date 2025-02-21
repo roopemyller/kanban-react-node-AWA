@@ -186,6 +186,24 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
     }
 })
 
+router.post('/api/columns/reorder', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const {boardId, columnOrder} = req.body
+        const board = await Board.findOne({_id: boardId, userId: req.user._id})
+        if(!board){
+            res.status(403).json({ message: 'Not authorized to modify this board' })
+            return
+        }
+        board.columns = columnOrder
+        await board.save();
+
+        res.status(200).json({ message: 'Columns reordered successfully' });
+    } catch (error) {
+        console.error('Error reordering columns:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+})
+
 // POST: Add new ticket to a column
 router.post('/api/tickets/add', authenticateUser, async(req:Request, res:Response) => {
     try {
