@@ -155,7 +155,31 @@ const Board = () => {
                 updatedColumns[columnIndex] = {
                     ...activeColumn,
                     tickets: updatedTickets
-                };
+                }
+                const finalTicketOrder = updatedTickets
+
+                try {
+                    const response = await fetch('http://localhost:3000/api/tickets/reorder', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('token')}`,
+                        },
+                        body: JSON.stringify({
+                            sourceColumnId: activeColumn._id,
+                            destinationColumnId: overColumn._id,
+                            ticketId: active.id,
+                            newOrder: finalTicketOrder.map((t: { _id: string }) => t._id)
+                        }),
+                    })
+        
+                    if (!response.ok) {
+                        console.error('Failed to update ticket order in backend')
+                        // Optionally revert the frontend state if backend update fails
+                    }
+                } catch (error) {
+                    console.error('Error updating ticket order:', error);
+                }
             } else {
                 // Moving between columns
                 const sourceColumnIndex = updatedColumns.findIndex(col => col._id === activeColumn._id);
@@ -184,9 +208,31 @@ const Board = () => {
                     ...overColumn,
                     tickets: updatedTargetTickets
                 };
+                try {
+                    const response = await fetch('http://localhost:3000/api/tickets/reorder', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${localStorage.getItem('token')}`,
+                        },
+                        body: JSON.stringify({
+                            sourceColumnId: activeColumn._id,
+                            destinationColumnId: overColumn._id,
+                            ticketId: active.id,
+                            newOrder: updatedTargetTickets.map((t: { _id: string }) => t._id)
+                        }),
+                    })
+        
+                    if (!response.ok) {
+                        console.error('Failed to update ticket order in backend')
+                        // Optionally revert the frontend state if backend update fails
+                    }
+                } catch (error) {
+                    console.error('Error updating ticket order:', error);
+                }
             }
-    
-            setBoard({ ...board, columns: updatedColumns });
+            setBoard({ ...board, columns: updatedColumns })
+
         } else {
             // Moving a column
             const oldIndex = board.columns.findIndex((col) => col._id === active.id);

@@ -186,6 +186,7 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
     }
 })
 
+// POST: Reorder columns
 router.post('/api/columns/reorder', authenticateUser, async(req:Request, res:Response) => {
     try {
         const {boardId, columnOrder} = req.body
@@ -244,6 +245,52 @@ router.delete('/api/tickets/:id', authenticateUser, async(req:Request, res:Respo
         res.status(200).json({ message: 'Ticket deleted successfully' })
     } catch (error) {
         console.error('Error deleting ticket:', error)
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
+// POST: Reorder tickets
+router.post('/api/tickets/reorder', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const { sourceColumnId, destinationColumnId, ticketId, newOrder } = req.body
+
+        // First, verify the ticket exists
+        const ticket = await Ticket.findById(ticketId)
+        if (!ticket) {
+            res.status(404).json({ message: 'Ticket not found' })
+            return 
+        }
+
+        if (sourceColumnId === destinationColumnId) {
+            const column = await Column.findById(sourceColumnId);
+            if (!column) {
+                res.status(404).json({ message: 'Column not found' })
+                return
+            }
+
+            // Update the ticket order in the column
+            column.tickets = newOrder
+            await column.save()
+        } else {
+            // Moving ticket between columns
+            // Remove from source column
+            await Column.findByIdAndUpdate(sourceColumnId, {
+                $pull: { tickets: ticketId }
+            })
+
+            // Add to destination column in the correct position
+            await Column.findByIdAndUpdate(destinationColumnId, {
+                $set: { tickets: newOrder }
+            })
+
+            // Update the ticket's columnId
+            ticket.columnId = destinationColumnId
+            await ticket.save()
+        }
+
+        res.status(200).json({ message: 'Ticket reordered successfully' })
+    } catch (error) {
+        console.error('Error reordering ticket:', error)
         res.status(500).json({ message: 'Server error' })
     }
 })
