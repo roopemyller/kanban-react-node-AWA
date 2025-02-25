@@ -169,11 +169,16 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
     try {
         const columnId = req.params.id
 
-        const column = await Column.findByIdAndDelete(columnId)
+        const column = await Column.findById(columnId)
         if(!column){
             res.status(404).json({message: "Column not found"})
             return
         }
+
+        await Ticket.deleteMany({ columnId: columnId })
+
+        await Column.findByIdAndDelete(columnId)
+
         await Board.updateOne(
             { _id: column.boardId },
             { $pull: { columns: column._id } }
@@ -182,6 +187,24 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
         res.status(200).json({ message: 'Column deleted successfully' })
     } catch (error) {
         console.error('Error deleting column:', error)
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
+router.put('/api/columns/:id', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const { title } = req.body
+        const columnId = req.params.id
+        const updatedColumn = await Column.findByIdAndUpdate(columnId, {
+            title
+        }, { new: true })
+        if (updatedColumn) {
+            res.status(200).json(updatedColumn)
+        } else {
+            res.status(404).json({ message: 'Column not found' })
+        }
+    } catch (error) {
+        console.error('Error updating column:', error)  
         res.status(500).json({ message: 'Server error' })
     }
 })
@@ -248,6 +271,28 @@ router.delete('/api/tickets/:id', authenticateUser, async(req:Request, res:Respo
         res.status(500).json({ message: 'Server error' })
     }
 })
+
+// PUT: Edit ticket by id
+router.put('/api/tickets/:id', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        const { title, description, backgroundColor } = req.body
+        const ticketId = req.params.id
+        const updatedTicket = await Ticket.findByIdAndUpdate(ticketId, {
+            title,
+            description,
+            backgroundColor
+        }, { new: true })
+        if (updatedTicket) {
+            res.status(200).json(updatedTicket)
+        } else {
+            res.status(404).json({ message: 'Ticket not found' })
+        }
+    } catch (error) {
+        console.error('Error updating ticket:', error)  
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
 
 // POST: Reorder tickets
 router.post('/api/tickets/reorder', authenticateUser, async(req:Request, res:Response) => {

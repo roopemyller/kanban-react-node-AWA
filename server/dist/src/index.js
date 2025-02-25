@@ -150,16 +150,37 @@ router.post('/api/columns/add', validateToken_1.authenticateUser, async (req, re
 router.delete('/api/columns/:id', validateToken_1.authenticateUser, async (req, res) => {
     try {
         const columnId = req.params.id;
-        const column = await Column_1.Column.findByIdAndDelete(columnId);
+        const column = await Column_1.Column.findById(columnId);
         if (!column) {
             res.status(404).json({ message: "Column not found" });
             return;
         }
+        await Ticket_1.Ticket.deleteMany({ columnId: columnId });
+        await Column_1.Column.findByIdAndDelete(columnId);
         await Board_1.Board.updateOne({ _id: column.boardId }, { $pull: { columns: column._id } });
         res.status(200).json({ message: 'Column deleted successfully' });
     }
     catch (error) {
         console.error('Error deleting column:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+router.put('/api/columns/:id', validateToken_1.authenticateUser, async (req, res) => {
+    try {
+        const { title } = req.body;
+        const columnId = req.params.id;
+        const updatedColumn = await Column_1.Column.findByIdAndUpdate(columnId, {
+            title
+        }, { new: true });
+        if (updatedColumn) {
+            res.status(200).json(updatedColumn);
+        }
+        else {
+            res.status(404).json({ message: 'Column not found' });
+        }
+    }
+    catch (error) {
+        console.error('Error updating column:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -215,6 +236,28 @@ router.delete('/api/tickets/:id', validateToken_1.authenticateUser, async (req, 
     }
     catch (error) {
         console.error('Error deleting ticket:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+// PUT: Edit ticket by id
+router.put('/api/tickets/:id', validateToken_1.authenticateUser, async (req, res) => {
+    try {
+        const { title, description, backgroundColor } = req.body;
+        const ticketId = req.params.id;
+        const updatedTicket = await Ticket_1.Ticket.findByIdAndUpdate(ticketId, {
+            title,
+            description,
+            backgroundColor
+        }, { new: true });
+        if (updatedTicket) {
+            res.status(200).json(updatedTicket);
+        }
+        else {
+            res.status(404).json({ message: 'Ticket not found' });
+        }
+    }
+    catch (error) {
+        console.error('Error updating ticket:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
