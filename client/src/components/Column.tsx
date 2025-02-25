@@ -74,6 +74,7 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
         }
     }
     
+    // Function to edit column with PUT request sent to the server and updating the column in db
     const editColumn = async () => {
         try {
             const response = await fetch(`http://localhost:3000/api/columns/${id}`, {
@@ -87,6 +88,7 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
                 }),
             })
             const updatedColumn = await response.json()
+            // If response ok, update board state by editing the column
             if (response.ok && board) {
                 setBoard({
                     ...board,
@@ -109,16 +111,20 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
         <Box ref={setNodeRef} style={style} {...attributes} {...listeners} 
             sx={{ 
                 backgroundColor: '#3b3b3b',
-                p: 2,
+                p: 1.5,
                 border: isDragging ? '2px dashed #666' : '1px solid black',
                 minHeight: 400,
-                height: '100%',
+                width: 205,
+                height: 'fit-content',
                 flexGrow: 1,
                 borderRadius: 1,
                 transition: 'all 0.05s',
                 display: 'flex',
                 flexDirection: 'column',
-                '&:hover': { backgroundColor: '#404040', borderColor: tickets.length === 0 ? '#777' : 'inherit'}
+                '&:hover': { backgroundColor: '#404040', borderColor: tickets.length === 0 ? '#777' : 'inherit'},
+                "@media (max-width: 1200px)": { width: 'calc(100% - 16px)' },
+                "@media (max-width: 785px)": { width: 'calc(100% - 16px)' },
+                "@media (max-width: 650px)": { width: 270 },
             }}
         >
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>

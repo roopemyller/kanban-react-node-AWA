@@ -6,10 +6,10 @@ import ReactQuill from "react-quill-new"
 import "react-quill/dist/quill.snow.css"
 import {DndContext, closestCorners, useSensor, useSensors, MouseSensor } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-
+import { useNavigate } from 'react-router-dom'
 
 const Board = () => {
-
+    const navigate = useNavigate()
     // States and other things for the board
     const { board, setBoard } = useBoard()
     const [boardName, setBoardName] = useState('')
@@ -24,7 +24,6 @@ const Board = () => {
     // Ticket color options, gray, orange, green, blue, purple
     const colorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
 
-
     // Drag and drop sensors
     const mouseSensor = useSensor(MouseSensor, {
         activationConstraint: {
@@ -32,7 +31,12 @@ const Board = () => {
         }
     })
     const sensors = useSensors(mouseSensor)
-    
+
+    const handleUnauthorized = () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('userName')
+        navigate('/login')
+    }
 
     // Function to create a new board, takes the board name and sends a POST request to the backend
     const createBoard = async () => {
@@ -44,6 +48,12 @@ const Board = () => {
             },
             body: JSON.stringify({ title: boardName})
         })
+
+        if (response.status === 401) {
+            handleUnauthorized()
+            return
+        }
+
         const data = await response.json()
 
         // If backend ok, set the board with fetched data
@@ -63,6 +73,12 @@ const Board = () => {
             },
             body: JSON.stringify({ title: columnTitle, boardId: board?._id }),
         })
+
+        if (response.status === 401) {
+            handleUnauthorized()
+            return
+        }
+
         const data = await response.json()
 
         // If backend ok, add the column to the board and reset the column title and close the popup
@@ -93,6 +109,12 @@ const Board = () => {
                 backgroundColor: ticketColor,
             }),
         })
+
+        if (response.status === 401) {
+            handleUnauthorized()
+            return
+        }
+
         const data = await response.json()
 
         // If backend ok, set the board by adingd the ticket to the selected column and reset the ticket title, description, color and close the popup
@@ -199,6 +221,10 @@ const Board = () => {
                             newOrder: finalTicketOrder.map((t: { _id: string }) => t._id)
                         }),
                     })
+                    if (response.status === 401) {
+                        handleUnauthorized()
+                        return
+                    }
                     if (response.ok) {
                         console.log('Ticket order updated successfully')
                     } else {
@@ -254,6 +280,10 @@ const Board = () => {
                             newOrder: updatedTargetTickets.map((t: { _id: string }) => t._id)
                         }),
                     })
+                    if (response.status === 401) {
+                        handleUnauthorized()
+                        return
+                    }
         
                     if (response.ok) {
                         console.log('Ticket order updated successfully')
@@ -292,6 +322,10 @@ const Board = () => {
                         columnOrder,
                     }),
                 })
+                if (response.status === 401) {
+                    handleUnauthorized()
+                    return
+                }
     
                 const data = await response.json()
                 if (response.ok) {
@@ -322,7 +356,40 @@ const Board = () => {
             {/* Drag and drop context and sortable context for columns and tickets, also the columns and tickets themselves */}
             <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
                 <SortableContext items={board.columns.map(col => col._id)} strategy={verticalListSortingStrategy}>
-                    <Box sx={{ display: "flex", overflowX: "auto", gap: 2, padding: 2, minHeight: "80vh", "@media (max-width: 600px)": { flexDirection: "column", alignItems: "center", }, }}>
+                    <Box sx={{ 
+                        display: "flex", 
+                        overflowX: "auto", 
+                        gap: 2, 
+                        padding: 2, 
+                        minHeight: "80vh",
+
+                        "@media (max-width: 1200px)": {
+                            // Between 785px and 1200px - 2x2 grid
+                            display: "grid",
+                            gap: 2,
+                            gridTemplateColumns: "repeat(2, 1fr)",
+                            gridAutoFlow: "row",
+                        },
+
+                        "@media (max-width: 785px)": {
+                            // Between 650px and 785px - 2x2 grid
+                            display: "grid",
+                            gap: 2,
+                            gridTemplateColumns: "repeat(2, 1fr)",
+                            gridAutoFlow: "row",
+                        },
+
+                        "@media (max-width: 650px)": {
+                            display: "flex", 
+                            overflowX: "auto", 
+                            gap: 2, 
+                            padding: 2, 
+                            minHeight: "80vh",
+                            flexDirection: "column", 
+                            alignItems: "center",
+                        },
+                        
+                    }}>
                         {board.columns.map((col) => (
                             <Column key={col._id} id={col._id} title={col.title} />
                         ))}

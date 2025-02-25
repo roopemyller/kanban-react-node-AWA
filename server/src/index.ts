@@ -191,6 +191,7 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
     }
 })
 
+// PUT: Edit column by id
 router.put('/api/columns/:id', authenticateUser, async(req:Request, res:Response) => {
     try {
         const { title } = req.body

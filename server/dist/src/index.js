@@ -165,6 +165,7 @@ router.delete('/api/columns/:id', validateToken_1.authenticateUser, async (req, 
         res.status(500).json({ message: 'Server error' });
     }
 });
+// PUT: Edit column by id
 router.put('/api/columns/:id', validateToken_1.authenticateUser, async (req, res) => {
     try {
         const { title } = req.body;

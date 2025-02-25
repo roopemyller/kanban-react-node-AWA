@@ -17,6 +17,7 @@ interface IBoard {
     title: string
     description: string;
     backgroundColor: string
+    date: string
  }
 
 // Define the context type
@@ -43,6 +44,7 @@ export const fetchBoard = async (setBoard: React.Dispatch<React.SetStateAction<I
                 Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
         })
+
         const data = await response.json()
         console.log("Get board data: ", data)
         if (response.ok) {
@@ -57,25 +59,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [board, setBoard] = useState<IBoard | null>(null)
 
     useEffect(() => {
-        const fetchBoard = async () => {
-            try {
-                const response = await fetch('http://localhost:3000/api/boards/get', {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                })
-                const data = await response.json()
-                console.log("Get board data: ", data)
-                if (response.ok) {
-                    setBoard(data[0])
-                }
-            } catch (error) {
-                console.error('Error fetching board:', error)
-            }
-        }
-
-        fetchBoard()
+        fetchBoard(setBoard)
     }, [])
     return (
         <BoardContext.Provider value={{ board, setBoard }}>

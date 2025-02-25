@@ -17,6 +17,7 @@ interface TicketProps {
         title: string
         description: string
         backgroundColor: string
+        date: string
     }
     columnId: string
 }
@@ -43,6 +44,16 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
     const handleClose = () => {
         setAnchorEl(null)
     }
+
+    const formattedDate = new Date(newTicket.date).toLocaleDateString('fi-FI', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+    const formattedTime = new Date(newTicket.date).toLocaleTimeString('fi-FI', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 
     // DnD Kit things for the ticket
     const id = newTicket._id
@@ -85,6 +96,7 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
         }
     }
 
+    // Function to edit ticket with PUT request sent to the server and updating the ticket in db
     const editTicket = async () => {
         try {
             const response = await fetch(`http://localhost:3000/api/tickets/${id}`, {
@@ -99,6 +111,7 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
                     backgroundColor: ticketColor,
                 }),
             })
+            // If response ok, update board state by updating the ticket in the correct column
             if (response.ok && board) {
                 setBoard({
                     ...board,
@@ -132,9 +145,9 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
     
     return (
         // Ticket component with title, description as rich text and menu button to edit or delete the ticket
-        <Box ref={setNodeRef} style={style} {...attributes} {...listeners} key={newTicket._id} sx={{ p: 1, border: "1px solid grey", borderRadius: 1, mb: 2, backgroundColor: newTicket.backgroundColor }}>
+        <Box ref={setNodeRef} style={style} {...attributes} {...listeners} key={newTicket._id} sx={{ p: 1, border: "1px solid grey", borderRadius: 1, mb: 2, backgroundColor: newTicket.backgroundColor, '&:hover': { borderColor: 'inherit'},}}>
             <Box  sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-                <Typography  variant="h6" style={{marginLeft: '20px'}}>{newTicket.title}</Typography >
+                <Typography  variant="h6">{newTicket.title}</Typography >
                 <IconButton id="basic-button" aria-controls={open ? 'basic-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined} onClick={handleClick}>
                     <MoreVertIcon/>
                 </IconButton>
@@ -152,6 +165,7 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
                 </Menu>
             </Box>
             <Typography variant='body2' align="left" dangerouslySetInnerHTML={{ __html: newTicket.description }}/>
+            <Typography variant='body2' sx={{fontSize: 12}} align="left">Created:<br/>{formattedDate} at {formattedTime}</Typography>
 
             {/* Confirmation Popup for deleting ticket */}
             <Dialog open={isDeletePopupOpen} onClose={() => setIsDeletePopupOpen(false)} fullWidth maxWidth="sm" aria-labelledby="delete-dialog-title" keepMounted={false} disablePortal>
