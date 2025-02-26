@@ -8,6 +8,7 @@ interface ITicket extends Document {
     date: Date
     columnId: string
     backgroundColor: string
+    modifiedAt?: Date
 }
 
 const ticketSchema: Schema = new Schema({
@@ -15,7 +16,8 @@ const ticketSchema: Schema = new Schema({
     description: {type: String},
     date: {type: Date, default: Date.now },
     columnId: { type: Schema.Types.ObjectId, ref: 'Column', required: true },
-    backgroundColor: { type: String, default: '#3b3b3b' }
+    backgroundColor: { type: String, default: '#3b3b3b' },
+    modifiedAt: { type: Date },
 })
 
 const Ticket: mongoose.Model<ITicket> = mongoose.model<ITicket>('Ticket', ticketSchema)

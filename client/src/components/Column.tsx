@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Menu, MenuItem, TextField } from "@mui/material"
 import { useState } from 'react'
-import { useBoard } from '../context/BoardContext'
+import { ITicket, useBoard } from '../context/BoardContext'
 import Ticket from './Ticket'
 import { SortableContext, useSortable, verticalListSortingStrategy  } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -10,19 +10,25 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 
 // ColumnProps interface
 interface ColumnProps {
-    id: string;
-    title: string;
+    id: string
+    title: string
+    tickets?: ITicket[]
+    backgroundColor: string
 }
 
-const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
+const Column = ({ id, title, tickets: passedTickets, backgroundColor }: ColumnProps = {id: "", title: "", backgroundColor: ""}) => {
     // States and other things for the board and columns
     const { board, setBoard } = useBoard()
     const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false)
     const [isEditPopupOpen, setIsEditPopupOpen] = useState(false)
     const [columnTitle, setColumnTitle] = useState(title)
-    const tickets = board?.columns.find(col => col._id === id)?.tickets ||[]
+    const [columnColor, setColumnColor] = useState(backgroundColor || '#3b3b3b')
+    const tickets = passedTickets || board?.columns.find(col => col._id === id)?.tickets || [];
     const column = board?.columns.find(col => col._id === id)
         
+    // Ticket color options, gray, orange, green, blue, purple
+    const colorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
+
     // DnD Kit things for the column
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
     const style = {
@@ -76,6 +82,7 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
     
     // Function to edit column with PUT request sent to the server and updating the column in db
     const editColumn = async () => {
+        if (!columnTitle.trim()) return
         try {
             const response = await fetch(`http://localhost:3000/api/columns/${id}`, {
                 method: 'PUT',
@@ -85,6 +92,7 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
                 },
                 body: JSON.stringify({
                     title: columnTitle,
+                    backgroundColor: columnColor,
                 }),
             })
             const updatedColumn = await response.json()
@@ -93,7 +101,7 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
                 setBoard({
                     ...board,
                     columns: board.columns.map(col =>
-                        col._id === id ? { ...col, title: updatedColumn.title } : col
+                        col._id === id ? { ...col, title: updatedColumn.title, backgroundColor: updatedColumn.backgroundColor } : col
                     ),
                 })
             } else {
@@ -110,7 +118,7 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
         // Column component with header and button to remove it and also the list of tickets inside DnD Kit SortableContext
         <Box ref={setNodeRef} style={style} {...attributes} {...listeners} 
             sx={{ 
-                backgroundColor: '#3b3b3b',
+                backgroundColor: backgroundColor,
                 p: 1.5,
                 border: isDragging ? '2px dashed #666' : '1px solid black',
                 minHeight: 400,
@@ -118,22 +126,21 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
                 height: 'fit-content',
                 flexGrow: 1,
                 borderRadius: 1,
-                transition: 'all 0.05s',
+                transition: 'all .07s ease',
                 display: 'flex',
                 flexDirection: 'column',
-                '&:hover': { backgroundColor: '#404040', borderColor: tickets.length === 0 ? '#777' : 'inherit'},
+                '&:hover': { borderColor: tickets.length === 0 ? '#777' : 'inherit'},
                 "@media (max-width: 1200px)": { width: 'calc(100% - 16px)' },
-                "@media (max-width: 785px)": { width: 'calc(100% - 16px)' },
                 "@media (max-width: 650px)": { width: 270 },
             }}
         >
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-                <Typography variant='h5' align="left">{title}</Typography>
+                <Typography onDoubleClick={() => {setIsEditPopupOpen(true); setColumnTitle(title)}} variant='h5' align="left">{title}</Typography>
                 <IconButton id="basic-button" aria-controls={open ? 'basic-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined} onClick={handleClick}>
                     <MoreVertIcon/>
                 </IconButton>
                 <Menu id="ticket-menu" anchorEl={anchorEl} open={open} onClose={handleClose} MenuListProps={{'aria-labelledby': 'basic-button',}}>
-                    <MenuItem onClick={() => {setIsEditPopupOpen(true); handleClose()}}>Edit</MenuItem>
+                    <MenuItem onClick={() => {setIsEditPopupOpen(true); setColumnTitle(title); handleClose()}}>Edit</MenuItem>
                     <MenuItem onClick={() => {setIsDeletePopupOpen(true); handleClose()}}>Delete</MenuItem>
                 </Menu>
             </Box>
@@ -177,13 +184,18 @@ const Column = ({ id, title }: ColumnProps = {id: "", title: ""}) => {
 
             {/* If "Edit ticket" button is pressed, a popup is presented with option to edit ticket a name, description using rich text editor, and the color, options for adding changes or canceling*/}
             <Dialog open={isEditPopupOpen} onClose={() => setIsEditPopupOpen(false)} fullWidth maxWidth="sm" aria-labelledby="delete-dialog-title" keepMounted={false} disablePortal>
-                <DialogTitle>Edit Ticket</DialogTitle>
+                <DialogTitle>Edit Column</DialogTitle>
                 <DialogContent>
                     <TextField autoFocus margin="dense" label="Title" fullWidth value={columnTitle} onChange={(e) => setColumnTitle(e.target.value)}/>
+                    <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
+                        {colorOptions.map((color) => (
+                            <Box key={color} sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: color, cursor: 'pointer', boxShadow: columnColor === color ? 2 : 0, border: columnColor === color ? '2px solid #000' : 'none', }} onClick={() => setColumnColor(color)}/>
+                        ))}
+                    </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={editColumn} variant="contained" color="success">Add</Button>
-                    <Button onClick={() => { setIsEditPopupOpen(false); setColumnTitle('');}} variant="outlined" color="error">Cancel</Button>
+                    <Button onClick={editColumn} variant="contained" color="success">Confirm</Button>
+                    <Button onClick={() => { setIsEditPopupOpen(false); setColumnTitle('')}} variant="outlined" color="error">Cancel</Button>
                 </DialogActions>
             </Dialog>
         </Box>

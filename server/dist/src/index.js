@@ -128,7 +128,7 @@ router.get('/api/boards/get', validateToken_1.authenticateUser, async (req, res)
 // POST: Create a column
 router.post('/api/columns/add', validateToken_1.authenticateUser, async (req, res) => {
     try {
-        const { title, boardId } = req.body;
+        const { title, boardId, backgroundColor } = req.body;
         const userId = req.user._id;
         const board = await Board_1.Board.findOne({ _id: boardId, userId });
         if (!board) {
@@ -136,7 +136,7 @@ router.post('/api/columns/add', validateToken_1.authenticateUser, async (req, re
             console.log("Not authorized");
             return;
         }
-        const column = new Column_1.Column({ title, boardId });
+        const column = new Column_1.Column({ title, boardId, backgroundColor });
         await column.save();
         board.columns.push(column._id);
         await board.save();
@@ -168,10 +168,10 @@ router.delete('/api/columns/:id', validateToken_1.authenticateUser, async (req, 
 // PUT: Edit column by id
 router.put('/api/columns/:id', validateToken_1.authenticateUser, async (req, res) => {
     try {
-        const { title } = req.body;
+        const { title, backgroundColor } = req.body;
         const columnId = req.params.id;
         const updatedColumn = await Column_1.Column.findByIdAndUpdate(columnId, {
-            title
+            title, backgroundColor
         }, { new: true });
         if (updatedColumn) {
             res.status(200).json(updatedColumn);
@@ -248,7 +248,8 @@ router.put('/api/tickets/:id', validateToken_1.authenticateUser, async (req, res
         const updatedTicket = await Ticket_1.Ticket.findByIdAndUpdate(ticketId, {
             title,
             description,
-            backgroundColor
+            backgroundColor,
+            modifiedAt: new Date()
         }, { new: true });
         if (updatedTicket) {
             res.status(200).json(updatedTicket);

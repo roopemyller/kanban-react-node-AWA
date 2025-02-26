@@ -40,7 +40,8 @@ const ticketSchema = new mongoose_1.Schema({
     description: { type: String },
     date: { type: Date, default: Date.now },
     columnId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Column', required: true },
-    backgroundColor: { type: String, default: '#3b3b3b' }
+    backgroundColor: { type: String, default: '#3b3b3b' },
+    modifiedAt: { type: Date },
 });
 const Ticket = mongoose_1.default.model('Ticket', ticketSchema);
 exports.Ticket = Ticket;

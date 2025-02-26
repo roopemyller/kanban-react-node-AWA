@@ -3,12 +3,11 @@ import * as React from 'react'
 import IconButton from '@mui/material/IconButton'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import { useBoard } from '../context/BoardContext'
-import { Menu, MenuItem, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography, TextField } from "@mui/material";
+import { Menu, MenuItem, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography, TextField } from "@mui/material"
 import { useSortable  } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useState } from 'react';
-import ReactQuill from 'react-quill-new';
-
+import { useState } from 'react'
+import ReactQuill from 'react-quill-new'
 
 // TicketProps interface
 interface TicketProps {
@@ -18,6 +17,7 @@ interface TicketProps {
         description: string
         backgroundColor: string
         date: string
+        modifiedAt?: string
     }
     columnId: string
 }
@@ -49,11 +49,22 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
-    });
+    })
     const formattedTime = new Date(newTicket.date).toLocaleTimeString('fi-FI', {
         hour: '2-digit',
         minute: '2-digit',
-    });
+    })
+
+    const formattedModifiedDate = newTicket.modifiedAt ? new Date(newTicket.modifiedAt).toLocaleDateString('fi-FI', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    }) : null
+
+    const formattedModifiedTime = newTicket.modifiedAt ? new Date(newTicket.modifiedAt).toLocaleTimeString('fi-FI', {
+        hour: '2-digit',
+        minute: '2-digit',
+    }) : null
 
     // DnD Kit things for the ticket
     const id = newTicket._id
@@ -112,6 +123,7 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
                 }),
             })
             // If response ok, update board state by updating the ticket in the correct column
+            const updatedTicket = await response.json()
             if (response.ok && board) {
                 setBoard({
                     ...board,
@@ -126,6 +138,7 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
                                             title: ticketTitle,
                                             description: ticketDesc,
                                             backgroundColor: ticketColor,
+                                            modifiedAt: updatedTicket.modifiedAt
                                         }
                                         : ticket
                                 ),
@@ -145,8 +158,13 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
     
     return (
         // Ticket component with title, description as rich text and menu button to edit or delete the ticket
-        <Box ref={setNodeRef} style={style} {...attributes} {...listeners} key={newTicket._id} sx={{ p: 1, border: "1px solid grey", borderRadius: 1, mb: 2, backgroundColor: newTicket.backgroundColor, '&:hover': { borderColor: 'inherit'},}}>
-            <Box  sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        <Box onDoubleClick={() => {
+            setTicketTitle(newTicket.title)
+            setTicketDesc(newTicket.description)
+            setTicketColor(newTicket.backgroundColor)
+            setIsTicketPopupOpen(true)
+        }} ref={setNodeRef} style={style} {...attributes} {...listeners} key={newTicket._id} sx={{ p: 1, border: "1px solid grey", borderRadius: 1, mb: 2, backgroundColor: newTicket.backgroundColor, '&:hover': { borderColor: 'inherit'},}}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
                 <Typography  variant="h6">{newTicket.title}</Typography >
                 <IconButton id="basic-button" aria-controls={open ? 'basic-menu' : undefined} aria-haspopup="true" aria-expanded={open ? 'true' : undefined} onClick={handleClick}>
                     <MoreVertIcon/>
@@ -166,6 +184,9 @@ const Ticket = ({ newTicket, columnId }: TicketProps) => {
             </Box>
             <Typography variant='body2' align="left" dangerouslySetInnerHTML={{ __html: newTicket.description }}/>
             <Typography variant='body2' sx={{fontSize: 12}} align="left">Created:<br/>{formattedDate} at {formattedTime}</Typography>
+            {newTicket.modifiedAt && (
+                <Typography variant='body2' sx={{ fontSize: 12 }} align="left">Modified:<br />{formattedModifiedDate} at {formattedModifiedTime}</Typography>
+            )}
 
             {/* Confirmation Popup for deleting ticket */}
             <Dialog open={isDeletePopupOpen} onClose={() => setIsDeletePopupOpen(false)} fullWidth maxWidth="sm" aria-labelledby="delete-dialog-title" keepMounted={false} disablePortal>

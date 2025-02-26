@@ -1,23 +1,26 @@
 
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
-interface IColumn {
+export interface IColumn {
     _id: string
     title: string
     tickets: ITicket[]
+    backgroundColor: string
 }
 
-interface IBoard {
+export interface IBoard {
     _id: string
     title: string
     columns: IColumn[]
 }
- interface ITicket {
+ 
+export interface ITicket {
     _id: string
     title: string
     description: string;
     backgroundColor: string
     date: string
+    modifiedAt: string
  }
 
 // Define the context type
@@ -46,7 +49,6 @@ export const fetchBoard = async (setBoard: React.Dispatch<React.SetStateAction<I
         })
 
         const data = await response.json()
-        console.log("Get board data: ", data)
         if (response.ok) {
             setBoard(data[0])
         }

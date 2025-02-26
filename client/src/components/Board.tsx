@@ -7,6 +7,7 @@ import "react-quill/dist/quill.snow.css"
 import {DndContext, closestCorners, useSensor, useSensors, MouseSensor } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useNavigate } from 'react-router-dom'
+import { ITicket } from '../context/BoardContext'
 
 const Board = () => {
     const navigate = useNavigate()
@@ -14,12 +15,14 @@ const Board = () => {
     const { board, setBoard } = useBoard()
     const [boardName, setBoardName] = useState('')
     const [columnTitle, setColumnTitle] = useState('')
+    const [columnColor, setColumnColor] = useState<string>('#3b3b3b')
     const [ticketTitle, setTicketTitle] = useState('')
     const [ticketDesc, setTicketDesc] = useState('')
     const [ticketColor, setTicketColor] = useState<string>('#3b3b3b')
     const [isColumnPopupOpen, setIsColumnPopupOpen] = useState(false)
     const [isTicketPopupOpen, setIsTicketPopupOpen] = useState(false)
     const [selectedColumnId, setSelectedColumnId] = useState<string>('')
+    const [search, setSearch] = useState('')
 
     // Ticket color options, gray, orange, green, blue, purple
     const colorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
@@ -71,7 +74,7 @@ const Board = () => {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
-            body: JSON.stringify({ title: columnTitle, boardId: board?._id }),
+            body: JSON.stringify({ title: columnTitle, boardId: board?._id, backgroundColor: columnColor}),
         })
 
         if (response.status === 401) {
@@ -88,6 +91,7 @@ const Board = () => {
           } 
           setBoard({ ...board, columns: [...board.columns, { ...data, tasks: data.tasks || [] }] })
           setColumnTitle('')
+          setColumnColor('#3b3b3b')
           setIsColumnPopupOpen(false)
         }
     }
@@ -226,7 +230,7 @@ const Board = () => {
                         return
                     }
                     if (response.ok) {
-                        console.log('Ticket order updated successfully')
+                        console.log('Ticket order updated successfully inside column')
                     } else {
                         console.error('Failed to update ticket order in backend')
                     }
@@ -286,7 +290,7 @@ const Board = () => {
                     }
         
                     if (response.ok) {
-                        console.log('Ticket order updated successfully')
+                        console.log('Ticket order updated successfully between columns')           
                     } else {
                         console.error('Failed to update ticket order in backend')
                     }
@@ -339,18 +343,61 @@ const Board = () => {
         }
     }
 
+    const filterTickets = (tickets: ITicket[]) => {
+        if (!search) {
+            return tickets
+        }
+        return tickets.filter(ticket => ticket.title.toLowerCase().includes(search.toLowerCase()) || ticket.description.toLowerCase().includes(search.toLowerCase()))
+    }
+
     return (
-        <Container maxWidth="xl" sx={{  padding: '2', border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
+        <Container  sx={{  padding: 2, border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
 
             {/* Board title and buttons to add columns and tickets */}
-            <Box sx={{ display: 'flex', alignItems: 'center', margin: 2, justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start'}}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, margin: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                     <Typography variant='h4' align="left">{board.title}</Typography>
+                    {/* Desktop Search (>800px) */}
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                        <TextField size="small" placeholder="Search tickets..." value={search} onChange={(e) => setSearch(e.target.value)}
+                            sx={{ 
+                                display: { xs: 'none', md: 'flex' },
+                                minWidth: 200,
+                                maxWidth: 300,                           
+                                maxHeight: 40,
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                '& .MuiInputBase-input': {
+                                    color: 'white',
+                                },
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: 'rgba(255, 255, 255, 0.5)',
+                                },
+                            }}
+                        />
+                        <Button variant="contained" onClick={() => setIsTicketPopupOpen(true)}>Add Ticket</Button>
+                        <Button variant="contained" onClick={() => setIsColumnPopupOpen(true)}>Add Column</Button>
+                    </Box>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                    <Button sx={{marginLeft: 2, marginRight: 2}} variant="contained" onClick={() => setIsTicketPopupOpen(true)}>Add Ticket</Button>
-                    <Button variant="contained" onClick={() => setIsColumnPopupOpen(true)}>Add Column</Button>
-                </Box>
+
+                {/* Mobile Search (<800px) */}
+                <TextField size="small" placeholder="Search tickets..." value={search} onChange={(e) => setSearch(e.target.value)}
+                    sx={{ 
+                        display: { xs: 'flex', md: 'none' },
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        '& .MuiInputBase-input': {
+                            color: 'white',
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'rgba(255, 255, 255, 0.5)',
+                        },
+                    }}
+                />
             </Box>
 
             {/* Drag and drop context and sortable context for columns and tickets, also the columns and tickets themselves */}
@@ -390,9 +437,10 @@ const Board = () => {
                         },
                         
                     }}>
-                        {board.columns.map((col) => (
-                            <Column key={col._id} id={col._id} title={col.title} />
-                        ))}
+                        {board.columns.map((col) => {
+                            const filteredTickets = filterTickets(col.tickets)
+                            return <Column key={col._id} id={col._id} title={col.title} tickets={filteredTickets} backgroundColor={col.backgroundColor}/>
+                        })}
                     </Box>
                 </SortableContext>
             </DndContext>
@@ -403,6 +451,11 @@ const Board = () => {
                 <DialogTitle>Add New Column</DialogTitle>
                 <DialogContent>
                     <TextField autoFocus margin="dense" label="Title" fullWidth value={columnTitle} onChange={(e) => setColumnTitle(e.target.value)}/>
+                    <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
+                        {colorOptions.map((color) => (
+                            <Box key={color} sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: color, cursor: 'pointer', boxShadow: columnColor === color ? 2 : 0, border: columnColor === color ? '2px solid #000' : 'none', }} onClick={() => setColumnColor(color)}/>
+                        ))}
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={addColumn} variant="contained" color="success">Add</Button>
@@ -411,16 +464,14 @@ const Board = () => {
             </Dialog>
 
             {/* If "Add ticket" button is pressed, a popup is presented with option to give ticket a name, description using rich text editor, setting the column of the ticket and the color, options for adding or canceling*/}
-            <Dialog open={isTicketPopupOpen} onClose={() => setIsTicketPopupOpen(false)} fullWidth maxWidth="sm">
+            <Dialog open={isTicketPopupOpen} onClose={() => {setIsTicketPopupOpen(false); setTicketDesc(''); setTicketTitle(''); setTicketColor('#3b3b3b') }} fullWidth maxWidth="sm">
                 <DialogTitle>Add New Ticket</DialogTitle>
                 <DialogContent>
                     <TextField autoFocus margin="dense" label="Title" fullWidth value={ticketTitle} onChange={(e) => setTicketTitle(e.target.value)}/>
                     <ReactQuill placeholder="Description" style={{ marginBottom: 10, marginTop: 5 }} value={ticketDesc} onChange={setTicketDesc}/>
                     <TextField id="outlined-select" onChange={(e) => setSelectedColumnId(e.target.value)} select defaultValue="" label="Column" helperText="Please select a column" fullWidth>
                         {board.columns.map((col) => (
-                            <MenuItem key={col._id} value={col._id}>
-                                {col.title}
-                            </MenuItem>
+                            <MenuItem key={col._id} value={col._id}>{col.title}</MenuItem>
                         ))}
                     </TextField>
                     <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
@@ -431,7 +482,7 @@ const Board = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={addTicket} variant="contained" color="success">Add</Button>
-                    <Button onClick={() => { setIsTicketPopupOpen(false); setTicketDesc(''); setTicketTitle('')}} variant="outlined" color="error">Cancel</Button>
+                    <Button onClick={() => { setIsTicketPopupOpen(false); setTicketDesc(''); setTicketTitle(''); setTicketColor('#3b3b3b')}} variant="outlined" color="error">Cancel</Button>
                 </DialogActions>
             </Dialog>
         </Container>

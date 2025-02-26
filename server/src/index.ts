@@ -143,7 +143,7 @@ router.get('/api/boards/get', authenticateUser, async (req:Request, res:Response
 // POST: Create a column
 router.post('/api/columns/add', authenticateUser, async(req:Request, res:Response) => {
     try {
-        const { title, boardId } = req.body
+        const { title, boardId, backgroundColor } = req.body
         const userId = req.user._id
         const board = await Board.findOne({ _id: boardId, userId })
         if (!board) {
@@ -152,7 +152,7 @@ router.post('/api/columns/add', authenticateUser, async(req:Request, res:Respons
             return
         }
 
-        const column = new Column({ title, boardId })
+        const column = new Column({ title, boardId, backgroundColor })
         await column.save()
 
         board.columns.push(column._id as Types.ObjectId)
@@ -194,10 +194,10 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
 // PUT: Edit column by id
 router.put('/api/columns/:id', authenticateUser, async(req:Request, res:Response) => {
     try {
-        const { title } = req.body
+        const { title, backgroundColor } = req.body
         const columnId = req.params.id
         const updatedColumn = await Column.findByIdAndUpdate(columnId, {
-            title
+            title, backgroundColor
         }, { new: true })
         if (updatedColumn) {
             res.status(200).json(updatedColumn)
@@ -220,12 +220,12 @@ router.post('/api/columns/reorder', authenticateUser, async(req:Request, res:Res
             return
         }
         board.columns = columnOrder
-        await board.save();
+        await board.save()
 
-        res.status(200).json({ message: 'Columns reordered successfully' });
+        res.status(200).json({ message: 'Columns reordered successfully' })
     } catch (error) {
-        console.error('Error reordering columns:', error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error reordering columns:', error)
+        res.status(500).json({ message: 'Server error' })
     }
 })
 
@@ -281,7 +281,8 @@ router.put('/api/tickets/:id', authenticateUser, async(req:Request, res:Response
         const updatedTicket = await Ticket.findByIdAndUpdate(ticketId, {
             title,
             description,
-            backgroundColor
+            backgroundColor,
+            modifiedAt: new Date()
         }, { new: true })
         if (updatedTicket) {
             res.status(200).json(updatedTicket)
