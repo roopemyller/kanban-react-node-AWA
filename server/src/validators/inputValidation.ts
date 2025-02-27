@@ -1,15 +1,16 @@
 import { body, validationResult } from 'express-validator'
 
+// Input validation for user registration and login
 const inputValidation = {
     register: [
         body('name')
-            .trim() // Trim spaces
+            .trim()
             .escape(),
   
         body('email')
             .trim()
             .escape()
-            .isEmail() // Validate email
+            .isEmail()
             .withMessage('Invalid email format'),
   
         body('password')

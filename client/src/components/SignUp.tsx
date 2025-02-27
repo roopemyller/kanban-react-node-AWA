@@ -19,6 +19,7 @@ const SignUp = () => {
 
     // Add user function, called when form is submitted
     const addUser = async () => {
+      try {
         const response = await fetch('http://localhost:3000/api/user/register', {
           method: 'POST',
           headers: {
@@ -26,14 +27,8 @@ const SignUp = () => {
           },
           body: JSON.stringify({ name, email, password }),
         })
-
+        // If response is ok, add user to database
         if(response.ok){
-            /* 
-            If response ok
-            - get the data (created new user)
-            - set form empty
-            - change page to home
-            */
             const newUser = await response.json()
             console.log(newUser)
             setName('')
@@ -43,71 +38,32 @@ const SignUp = () => {
           }else{
             setError('Error trying to sign up')
           }
+      } catch (error) {
+        console.log(error)
+        setError('Error trying to signup')
       }
+    }
     return (
         <>
+        {/* Signup form */}
         <MuiCard variant='outlined'>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding:"50px 120px" }}>
-                <Typography variant='h3'>
-                    Sign Up
-                </Typography>
-
+                <Typography variant='h3'>Sign Up</Typography>
                 {error && (
-                  <Typography color="error" textAlign="center">
-                    {error}
-                  </Typography>
+                  <Typography color="error" textAlign="center">{error}</Typography>
                 )}
-
-                <FormLabel>
-                    Name
-                </FormLabel>
-                <TextField
-                    required
-                    fullWidth
-                    id="name"
-                    placeholder='Your Name'
-                    autoComplete='name'
-                    autoFocus
-                    variant='outlined'
-                    onChange={e => setName(e.target.value)}
-                />
-
-                <FormLabel>
-                    Email
-                </FormLabel>
-                <TextField
-                    required
-                    fullWidth
-                    id="email"
-                    type="email"
-                    placeholder='Your Email'
-                    autoComplete='email'
-                    variant='outlined'
-                    onChange={e => setEmail(e.target.value)}
-                />
-                
-                <FormLabel>
-                    Password
-                </FormLabel>
-                <TextField
-                    required
-                    fullWidth
-                    id="password"
-                    type='password'
-                    placeholder='Your Password'
-                    autoComplete='new-password'
-                    variant='outlined'
-                    onChange={e => setPassword(e.target.value)}
-                />
-
+                {/* Form fields */}
+                <FormLabel>Name</FormLabel>
+                <TextField required fullWidth id="name" placeholder='Your Name' autoComplete='name' autoFocus variant='outlined' onChange={e => setName(e.target.value)}/>
+                <FormLabel>Email</FormLabel>
+                <TextField required fullWidth id="email" type="email" placeholder='Your Email' autoComplete='email' variant='outlined' onChange={e => setEmail(e.target.value)}/>
+                <FormLabel>Password</FormLabel>
+                <TextField required fullWidth id="password" type='password' placeholder='Your Password' autoComplete='new-password' variant='outlined' onChange={e => setPassword(e.target.value)}/>
                 <Button type='submit' variant='contained' onClick={addUser}>Register</Button>
-
                 <Divider>
                     <Typography sx={{ color: 'text.secondary' }}>or</Typography>
                 </Divider>
-
                 <Button color="inherit" component={Link} to="/login">Login</Button>
-
             </Box>
         </MuiCard>
         </>

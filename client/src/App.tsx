@@ -19,6 +19,7 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+    {/* Router component that has everything inside it like Header and Routes to Home/Login/Signup */}
     <BrowserRouter>
       <Header setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} setBoard={setBoard}/>
       <Routes>
@@ -37,6 +38,7 @@ const AppContent: React.FC = () => {
   )
 }
 
+// AppContent is wrapped in BoardProvider to provide the context for the kanban board to work
 const App: React.FC = () => {
   return (
     <BoardProvider>

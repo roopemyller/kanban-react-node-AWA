@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ticket = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+// Schema for the Kanban board ticket model
 const ticketSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     description: { type: String },

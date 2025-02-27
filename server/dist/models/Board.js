@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Board = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+// Schema for the Board model
 let boardSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },

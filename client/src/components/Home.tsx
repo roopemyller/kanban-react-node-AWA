@@ -4,7 +4,7 @@ import Board from './Board'
 import { fetchBoard } from '../context/BoardContext'
 import { useBoard } from '../context/BoardContext'
 import Button from '@mui/material/Button'
-import { Container, Typography, Box } from '@mui/material'
+import { Typography, Box } from '@mui/material'
 
 const Home = () => {
   const [userName, setUserName] = useState('')
@@ -20,7 +20,8 @@ const Home = () => {
   }, [])
 
   return (
-    <Container maxWidth="xl" sx={{marginTop: 6}}>
+    <Box sx={{marginTop: 6}}>
+      {/* Show user name if user is logged in, if not show text "login...."*/}
       <Typography variant="h5" sx={{textAlign: 'left'}}>{userName ? `Hello ${userName}` : 'Log in to see Kanban Board'}</Typography>
       <Box>
         {/* Show login button if user is not logged in */}
@@ -29,11 +30,12 @@ const Home = () => {
             <Button variant='contained' style={{ cursor: 'pointer' }}>Login</Button>
           </Link>
         )}
+        {/* Show board if user is logged in */}
         {userName && (
           <Board></Board>
         )}
       </Box>
-    </Container>
+    </Box>
   )
 }
 

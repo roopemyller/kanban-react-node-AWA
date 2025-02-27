@@ -1,6 +1,6 @@
 import mongoose, {Document, Types, Schema} from "mongoose"
-import {IColumn} from "./Column"
 
+// Interface for the Board model
 interface IBoard extends Document {
     title: string
     userId: Types.ObjectId
@@ -8,6 +8,7 @@ interface IBoard extends Document {
     createdAt: Date
 }
 
+// Schema for the Board model
 let boardSchema: Schema = new Schema({
     title: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },

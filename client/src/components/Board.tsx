@@ -25,7 +25,9 @@ const Board = () => {
     const [search, setSearch] = useState('')
 
     // Ticket color options, gray, orange, green, blue, purple
-    const colorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
+    const ticketColorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
+    const columnColorOptions = ['#3b3b3b', '#37474f', '#546e7a', '#78909c', '#b0bec5']
+
 
     // Drag and drop sensors
     const mouseSensor = useSensor(MouseSensor, {
@@ -452,7 +454,7 @@ const Board = () => {
                 <DialogContent>
                     <TextField autoFocus margin="dense" label="Title" fullWidth value={columnTitle} onChange={(e) => setColumnTitle(e.target.value)}/>
                     <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
-                        {colorOptions.map((color) => (
+                        {columnColorOptions.map((color) => (
                             <Box key={color} sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: color, cursor: 'pointer', boxShadow: columnColor === color ? 2 : 0, border: columnColor === color ? '2px solid #000' : 'none', }} onClick={() => setColumnColor(color)}/>
                         ))}
                     </Box>
@@ -475,7 +477,7 @@ const Board = () => {
                         ))}
                     </TextField>
                     <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
-                        {colorOptions.map((color) => (
+                        {ticketColorOptions.map((color) => (
                             <Box key={color} sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: color, cursor: 'pointer', boxShadow: ticketColor === color ? 2 : 0, border: ticketColor === color ? '2px solid #000' : 'none', }} onClick={() => setTicketColor(color)}/>
                         ))}
                     </Box>

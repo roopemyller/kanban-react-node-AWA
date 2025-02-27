@@ -3,7 +3,6 @@ import {ITicket} from "./Ticket"
 import { Board } from "./Board"
 
 // Kanban board column model
-
 interface IColumn extends Document {
     title: string
     boardId: Types.ObjectId
@@ -11,7 +10,7 @@ interface IColumn extends Document {
     tickets: mongoose.Types.ObjectId[] | ITicket[]
     backgroundColor: string
 }
-
+// Schema for the Kanban board column model
 let columnSchema: Schema = new Schema({
     title: { type: String, required: true },
     boardId: { type: Schema.Types.ObjectId, ref: 'Board', required: true },

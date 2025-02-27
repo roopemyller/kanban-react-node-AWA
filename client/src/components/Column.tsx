@@ -26,8 +26,8 @@ const Column = ({ id, title, tickets: passedTickets, backgroundColor }: ColumnPr
     const tickets = passedTickets || board?.columns.find(col => col._id === id)?.tickets || [];
     const column = board?.columns.find(col => col._id === id)
         
-    // Ticket color options, gray, orange, green, blue, purple
-    const colorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
+    // Column color options, gray, orange, green, blue, purple
+    const colorOptions = ['#3b3b3b', '#37474f', '#546e7a', '#78909c', '#b0bec5']
 
     // DnD Kit things for the column
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })

@@ -1,15 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_validator_1 = require("express-validator");
+// Input validation for user registration and login
 const inputValidation = {
     register: [
         (0, express_validator_1.body)('name')
-            .trim() // Trim spaces
+            .trim()
             .escape(),
         (0, express_validator_1.body)('email')
             .trim()
             .escape()
-            .isEmail() // Validate email
+            .isEmail()
             .withMessage('Invalid email format'),
         (0, express_validator_1.body)('password')
             .trim()

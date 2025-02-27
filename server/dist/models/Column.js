@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Column = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+// Schema for the Kanban board column model
 let columnSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     boardId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Board', required: true },

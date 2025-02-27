@@ -1,7 +1,6 @@
 import mongoose, {Document, Schema} from "mongoose"
 
 // Kanban board ticket model
-
 interface ITicket extends Document {
     title: string
     description: string
@@ -10,7 +9,7 @@ interface ITicket extends Document {
     backgroundColor: string
     modifiedAt?: Date
 }
-
+// Schema for the Kanban board ticket model
 const ticketSchema: Schema = new Schema({
     title: {type: String, required: true},
     description: {type: String},

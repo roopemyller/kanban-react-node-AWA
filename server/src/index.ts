@@ -23,8 +23,10 @@ router.get('/', (req, res) => {
 // POST: Register a new user
 router.post('/api/user/register', inputValidation.register, async(req: Request, res: Response) => {
 
+    // New user data
     const { name, email, password } = req.body
 
+    // Validate user input
     const errors = validationResult(req)
     if(!errors.isEmpty()){
         console.log(errors)
@@ -37,14 +39,15 @@ router.post('/api/user/register', inputValidation.register, async(req: Request, 
         return
     }
 
+    // Check if user already exists
     const userExists = await User.findOne({email})
     if(userExists){
         res.status(403).json({message: 'Email is already registered'})
         return
     }
     try {
+        // Hash the password and create the user
         const hashedPassword = await bcrypt.hash(password, 10)
-
         const newUser = new User({
             name,
             email,
@@ -62,33 +65,34 @@ router.post('/api/user/register', inputValidation.register, async(req: Request, 
 
 // POST: login with a user
 router.post('/api/user/login', inputValidation.login, async (req: Request, res: Response) => {
+    // User data
     const {email, password} = req.body
-
+    // Validate user input
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         res.status(400).json({ errors: errors.array() });
         return
     }
-
     if (!email || !password){
         res.status(400).json({message: 'No email or password'})
         return
     }
 
     try {
+        // Check if user exists
         const user = await User.findOne({email})
         if(!user){
             res.status(404).json({message: 'User not found'})
             return
         }
-
+        // Check if password is valid
         const isPasswordValid = await bcrypt.compare(password, user.password)
         if(!isPasswordValid){
             res.status(401).json({message: 'Invalid credentials'})
             return
         }
-        const token = jwt.sign({ _id: user._id, name: user.name}, process.env.SECRET!, { expiresIn: '1h' })
-
+        // Create a token and send it to the frontend for authentication
+        const token = jwt.sign({ _id: user._id, name: user.name}, process.env.SECRET!, { expiresIn: '2h' })
         res.status(200).json({token})
         return
     } catch (error) {
@@ -99,18 +103,20 @@ router.post('/api/user/login', inputValidation.login, async (req: Request, res: 
 // POST: Create a board
 router.post('/api/boards/add', authenticateUser, async(req: Request, res:Response) => {
     try {
+        // New board data
         const { title } = req.body
         const userId = req.user._id
 
+        // Check if user already has a board
         const existingBoard = await Board.findOne({ userId })
         if(existingBoard){
             res.status(400).json({message: "User already has a board"})
             console.log("User already has a board")
             return
         }
+        // Create a new board and send it to frontend
         const newBoard = new Board({ title, userId })
         await newBoard.save()
-
         res.status(201).json(newBoard)
     }catch(error){
         res.status(500).json({error: 'Server error'})
@@ -120,7 +126,9 @@ router.post('/api/boards/add', authenticateUser, async(req: Request, res:Respons
 // GET: Get users board
 router.get('/api/boards/get', authenticateUser, async (req:Request, res:Response) => {
     try {
+        // User data
         const userId = req.user._id
+        // Find the board and populate it with columns and tickets
         const boards = await Board.find({ userId }).populate({
             path: 'columns',
             populate: {
@@ -128,7 +136,7 @@ router.get('/api/boards/get', authenticateUser, async (req:Request, res:Response
                 model: 'Ticket'
             }
         })
-
+        // If no board is found, return a 404
         if (!boards.length) {
             res.status(404).json({ message: 'No board found' })
             console.log("No Board Found")
@@ -143,21 +151,23 @@ router.get('/api/boards/get', authenticateUser, async (req:Request, res:Response
 // POST: Create a column
 router.post('/api/columns/add', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // New column data
         const { title, boardId, backgroundColor } = req.body
         const userId = req.user._id
+
+        // Check if user has a board
         const board = await Board.findOne({ _id: boardId, userId })
         if (!board) {
-            res.status(403).json({ message: 'Not authorized' })
-            console.log("Not authorized")
+            res.status(403).json({ message: 'No board found' })
+            console.log("No board found")
             return
         }
 
+        // Create a new column and add it to the board
         const column = new Column({ title, boardId, backgroundColor })
         await column.save()
-
         board.columns.push(column._id as Types.ObjectId)
         await board.save()
-
         res.status(201).json(column)
     } catch (error) {
         res.status(500).json({ error: 'Server error' })
@@ -167,23 +177,23 @@ router.post('/api/columns/add', authenticateUser, async(req:Request, res:Respons
 // DELETE: Delete column by id
 router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // Column data
         const columnId = req.params.id
-
+        // Find the column and delete it
         const column = await Column.findById(columnId)
         if(!column){
             res.status(404).json({message: "Column not found"})
             return
         }
-
+        // Delete all tickets in the column
         await Ticket.deleteMany({ columnId: columnId })
-
+        // Delete the column
         await Column.findByIdAndDelete(columnId)
-
+        // Update the board
         await Board.updateOne(
             { _id: column.boardId },
             { $pull: { columns: column._id } }
         )
-
         res.status(200).json({ message: 'Column deleted successfully' })
     } catch (error) {
         console.error('Error deleting column:', error)
@@ -194,8 +204,10 @@ router.delete('/api/columns/:id', authenticateUser, async(req:Request, res:Respo
 // PUT: Edit column by id
 router.put('/api/columns/:id', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // Column data
         const { title, backgroundColor } = req.body
         const columnId = req.params.id
+        // Find the column and update
         const updatedColumn = await Column.findByIdAndUpdate(columnId, {
             title, backgroundColor
         }, { new: true })
@@ -213,7 +225,10 @@ router.put('/api/columns/:id', authenticateUser, async(req:Request, res:Response
 // POST: Reorder columns
 router.post('/api/columns/reorder', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // Column data
         const {boardId, columnOrder} = req.body
+        
+        // Find the board and update the column order
         const board = await Board.findOne({_id: boardId, userId: req.user._id})
         if(!board){
             res.status(403).json({ message: 'Not authorized to modify this board' })
@@ -232,17 +247,20 @@ router.post('/api/columns/reorder', authenticateUser, async(req:Request, res:Res
 // POST: Add new ticket to a column
 router.post('/api/tickets/add', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // Ticket data
         const { title, description, columnId, backgroundColor } = req.body
-
+        
+        // Check if title and columnId are provided
         if (!title || !columnId) {
             res.status(400).json({ error: "Title and columnId are required" })
             return
         }
+        // Create a new ticket and add it to the column
         const newTicket = await Ticket.create({title, description, columnId, backgroundColor})
         await Column.findByIdAndUpdate(columnId, {
             $push: {tickets: newTicket._id}
         })
-
+        // Return the new ticket and the updated column
         const updatedColumn = await Column.findById(columnId).populate('tickets')
         res.status(200).json({ ticket: newTicket, updatedColumn })
     } catch (error) {
@@ -254,18 +272,19 @@ router.post('/api/tickets/add', authenticateUser, async(req:Request, res:Respons
 // DELETE: Delete ticket by id
 router.delete('/api/tickets/:id', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // Ticket data
         const ticketId = req.params.id
-
+        // Find the ticket and delete it
         const ticket = await Ticket.findByIdAndDelete(ticketId)
         if(!ticket){
             res.status(404).json({message: "Ticket not found"})
             return
         }
+        // Update the column
         await Column.updateOne(
             { _id: ticket.columnId },
             { $pull: { tickets: ticket._id } }
         )
-
         res.status(200).json({ message: 'Ticket deleted successfully' })
     } catch (error) {
         console.error('Error deleting ticket:', error)
@@ -276,8 +295,10 @@ router.delete('/api/tickets/:id', authenticateUser, async(req:Request, res:Respo
 // PUT: Edit ticket by id
 router.put('/api/tickets/:id', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // Ticket data
         const { title, description, backgroundColor } = req.body
         const ticketId = req.params.id
+        // Find the ticket and update
         const updatedTicket = await Ticket.findByIdAndUpdate(ticketId, {
             title,
             description,
@@ -299,22 +320,25 @@ router.put('/api/tickets/:id', authenticateUser, async(req:Request, res:Response
 // POST: Reorder tickets
 router.post('/api/tickets/reorder', authenticateUser, async(req:Request, res:Response) => {
     try {
+        // Ticket data
         const { sourceColumnId, destinationColumnId, ticketId, newOrder } = req.body
 
-        // First, verify the ticket exists
+        // Find the ticket
         const ticket = await Ticket.findById(ticketId)
         if (!ticket) {
             res.status(404).json({ message: 'Ticket not found' })
             return 
         }
 
+        // Reorder the ticket
         if (sourceColumnId === destinationColumnId) {
+            // Moving ticket within the same column
+            // Find the column
             const column = await Column.findById(sourceColumnId);
             if (!column) {
                 res.status(404).json({ message: 'Column not found' })
                 return
             }
-
             // Update the ticket order in the column
             column.tickets = newOrder
             await column.save()
@@ -330,7 +354,7 @@ router.post('/api/tickets/reorder', authenticateUser, async(req:Request, res:Res
                 $set: { tickets: newOrder }
             })
 
-            // Update the ticket's columnId
+            // Update the ticket's columnId and save the ticket
             ticket.columnId = destinationColumnId
             await ticket.save()
         }
