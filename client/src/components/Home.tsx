@@ -6,7 +6,12 @@ import { useBoard } from '../context/BoardContext'
 import Button from '@mui/material/Button'
 import { Typography, Box } from '@mui/material'
 
-const Home = () => {
+interface HomeProps {
+  setIsLoggedIn: (value: boolean) => void
+  isLoggedIn: boolean
+}
+
+const Home = ({ setIsLoggedIn, isLoggedIn}: HomeProps) => {
   const [userName, setUserName] = useState('')
   const { setBoard } = useBoard()
   
@@ -32,7 +37,7 @@ const Home = () => {
         )}
         {/* Show board if user is logged in */}
         {userName && (
-          <Board></Board>
+          <Board setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn}></Board>
         )}
       </Box>
     </Box>

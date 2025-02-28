@@ -24,7 +24,7 @@ const AppContent: React.FC = () => {
       <Header setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} setBoard={setBoard}/>
       <Routes>
         <Route path='/' element={<>
-          <Home/>
+          <Home setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn}/>
           </>} />
           <Route path='/login' element={<>
             <Login setIsLoggedIn={setIsLoggedIn} />

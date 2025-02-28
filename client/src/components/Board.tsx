@@ -3,13 +3,18 @@ import { useState } from 'react'
 import Column from './Column'
 import { MenuItem, Container, Box, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from "@mui/material"
 import ReactQuill from "react-quill-new"
-import "react-quill/dist/quill.snow.css"
+import "react-quill-new/dist/quill.snow.css"
 import {DndContext, closestCorners, useSensor, useSensors, MouseSensor } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useNavigate } from 'react-router-dom'
 import { ITicket } from '../context/BoardContext'
 
-const Board = () => {
+interface BoardProps {
+    setIsLoggedIn: (value: boolean) => void
+    isLoggedIn: boolean
+}
+
+const Board = ({ setIsLoggedIn, isLoggedIn }: BoardProps) => {
     const navigate = useNavigate()
     // States and other things for the board
     const { board, setBoard } = useBoard()
@@ -30,7 +35,6 @@ const Board = () => {
     const ticketColorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
     const columnColorOptions = ['#3b3b3b', '#37474f', '#546e7a', '#78909c', '#b0bec5']
 
-
     // Drag and drop sensors
     const mouseSensor = useSensor(MouseSensor, {
         activationConstraint: {
@@ -39,7 +43,9 @@ const Board = () => {
     })
     const sensors = useSensors(mouseSensor)
 
+    // If user not authorized, remove token from localstorage and navigate to login page
     const handleUnauthorized = () => {
+        setIsLoggedIn(false)
         localStorage.removeItem('token')
         localStorage.removeItem('userName')
         navigate('/login')
@@ -55,11 +61,6 @@ const Board = () => {
             },
             body: JSON.stringify({ title: boardName})
         })
-
-        if (response.status === 401) {
-            handleUnauthorized()
-            return
-        }
 
         const data = await response.json()
 
@@ -147,7 +148,7 @@ const Board = () => {
     }
 
     // If there is no board for the user in db, present the user with an option to create a new board
-    if (!board) {
+    if (!board || !isLoggedIn) {
         return (
             <Container maxWidth="xl" sx={{  padding: '1', border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
                 <Box style={{ textAlign: 'left', margin: 20}}>
