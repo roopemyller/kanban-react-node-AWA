@@ -182,7 +182,7 @@ const Column = ({ id, title, tickets: passedTickets, backgroundColor }: ColumnPr
                 </DialogActions>
             </Dialog>
 
-            {/* If "Edit ticket" button is pressed, a popup is presented with option to edit ticket a name, description using rich text editor, and the color, options for adding changes or canceling*/}
+            {/* Edit Column Popup */}
             <Dialog open={isEditPopupOpen} onClose={() => setIsEditPopupOpen(false)} fullWidth maxWidth="sm" aria-labelledby="delete-dialog-title" keepMounted={false} disablePortal>
                 <DialogTitle>Edit Column</DialogTitle>
                 <DialogContent>

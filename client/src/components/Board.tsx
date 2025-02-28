@@ -23,6 +23,8 @@ const Board = () => {
     const [isTicketPopupOpen, setIsTicketPopupOpen] = useState(false)
     const [selectedColumnId, setSelectedColumnId] = useState<string>('')
     const [search, setSearch] = useState('')
+    const [isEditPopupOpen, setIsEditPopupOpen] = useState(false)
+    const [boardTitle, setBoardTitle] = useState('')
 
     // Ticket color options, gray, orange, green, blue, purple
     const ticketColorOptions = ['#3b3b3b', '#f28c28', '#4caf50', '#2196f3', '#9c27b0']
@@ -64,6 +66,7 @@ const Board = () => {
         // If backend ok, set the board with fetched data
         if (response.ok) {
             setBoard(data)
+            setBoardTitle(data.title)
         }
     }
 
@@ -352,13 +355,44 @@ const Board = () => {
         return tickets.filter(ticket => ticket.title.toLowerCase().includes(search.toLowerCase()) || ticket.description.toLowerCase().includes(search.toLowerCase()))
     }
 
+    // Function to edit board with PUT request sent to the server and updating the board in db
+    const editBoard = async () => {
+        if (!boardTitle.trim()) return
+        try {
+            const response = await fetch(`http://localhost:3000/api/boards/${board._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify({
+                    title: boardTitle,
+                }),
+            })
+            const updatedBoard = await response.json()
+            // If response ok, update board state by editing the board
+            if (response.ok && board) {
+                setBoard({
+                    ...board,
+                    title: updatedBoard.title,
+                })
+            } else {
+                console.error('Failed to edit board')
+            }
+        } catch (error) {
+            console.error('Error editing board:', error)
+        } finally {
+            setIsEditPopupOpen(false)
+        }
+    }
+
     return (
         <Container  sx={{  padding: 2, border: '2px solid grey', borderRadius: '5px', backgroundColor: 'rgb(59, 59, 59)' }}>
 
             {/* Board title and buttons to add columns and tickets */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, margin: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                    <Typography variant='h4' align="left">{board.title}</Typography>
+                    <Typography onDoubleClick={() => setIsEditPopupOpen(true)} variant='h4' align="left">{board.title}</Typography>
                     {/* Desktop Search (>800px) */}
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                         <TextField size="small" placeholder="Search tickets..." value={search} onChange={(e) => setSearch(e.target.value)}
@@ -485,6 +519,18 @@ const Board = () => {
                 <DialogActions>
                     <Button onClick={addTicket} variant="contained" color="success">Add</Button>
                     <Button onClick={() => { setIsTicketPopupOpen(false); setTicketDesc(''); setTicketTitle(''); setTicketColor('#3b3b3b')}} variant="outlined" color="error">Cancel</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* If "Edit ticket" button is pressed, a popup is presented with option to edit ticket a name, description using rich text editor, and the color, options for adding changes or canceling*/}
+            <Dialog open={isEditPopupOpen} onClose={() => setIsEditPopupOpen(false)} fullWidth maxWidth="sm" aria-labelledby="delete-dialog-title" keepMounted={false} disablePortal>
+                <DialogTitle>Edit Board Title</DialogTitle>
+                <DialogContent>
+                    <TextField autoFocus margin="dense" label="Title" fullWidth value={boardTitle} onChange={(e) => setBoardTitle(e.target.value)}/>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={editBoard} variant="contained" color="success">Confirm</Button>
+                    <Button onClick={() => { setIsEditPopupOpen(false); setBoardTitle('')}} variant="outlined" color="error">Cancel</Button>
                 </DialogActions>
             </Dialog>
         </Container>

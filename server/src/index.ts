@@ -148,6 +148,28 @@ router.get('/api/boards/get', authenticateUser, async (req:Request, res:Response
     }
 })
 
+// PUT: Edit board by id
+router.put('/api/boards/:id', authenticateUser, async(req:Request, res:Response) => {
+    try {
+        // Board data
+        const { title } = req.body
+        const boardId = req.params.id
+
+        // Find the column and update
+        const updatedBoard = await Board.findByIdAndUpdate(boardId, {
+            title
+        }, { new: true })
+        if (updatedBoard) {
+            res.status(200).json(updatedBoard)
+        } else {
+            res.status(404).json({ message: 'Board not found' })
+        }
+    } catch (error) {
+        console.error('Error updating board:', error)  
+        res.status(500).json({ message: 'Server error' })
+    }
+})
+
 // POST: Create a column
 router.post('/api/columns/add', authenticateUser, async(req:Request, res:Response) => {
     try {
