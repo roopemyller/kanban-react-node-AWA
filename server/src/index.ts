@@ -1,6 +1,8 @@
 import {Request, Response, Router} from "express"
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken"
+import multer from 'multer'
+import path from 'path'
 
 import inputValidation from './validators/inputValidation'
 import { validationResult } from 'express-validator'
@@ -12,6 +14,30 @@ import { Board } from '../models/Board';
 import { Types } from "mongoose";
 import { Ticket } from "../models/Ticket";
 
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/')
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+})
+
+// Upload function for multer, max filesize 5Mb
+const upload = multer({ 
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif/
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase())
+        const mimetype = allowedTypes.test(file.mimetype)
+        if (extname && mimetype) {
+            return cb(null, true)
+        }
+        cb(new Error('Only image files are allowed!'))
+    }
+})
 
 const router: Router = Router()
 
@@ -93,10 +119,51 @@ router.post('/api/user/login', inputValidation.login, async (req: Request, res: 
         }
         // Create a token and send it to the frontend for authentication
         const token = jwt.sign({ _id: user._id, name: user.name}, process.env.SECRET!, { expiresIn: '2h' })
-        res.status(200).json({token})
+        const profilePicture = user.profilePicture
+        res.status(200).json({token, profilePicture})
         return
     } catch (error) {
         console.log(error)
+    }
+})
+
+// GET: Get user data
+router.get('/api/users/profile', authenticateUser, async(req: Request, res: Response) => {
+    try {
+        // Get user data (-password) with id.
+        const user = await User.findById(req.user._id).select('-password')
+        if(user){
+            res.status(200).json(user)
+        }else{
+            res.status(404).json({message: 'User not found'})
+        }
+    } catch (error) {
+        res.status(500).json({error: 'Server error'})
+    }
+})
+
+// PUT: Edit user
+router.put('/api/users/edit', authenticateUser, upload.single('profilePicture'), async(req: Request, res: Response) => {
+    try {
+        // Get updated data
+        const updates: any = {}
+        if (req.body.name) updates.name = req.body.name
+        if (req.file) updates.profilePicture = `/uploads/${req.file.filename}`
+
+        // Get user that we are going to update and update it
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            updates,
+            { new: true }
+        ).select('-password')
+        if (!updatedUser) {
+            res.status(404).json({ message: 'User not found' })
+            return 
+        }
+        res.status(200).json(updatedUser)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: 'Server error' })
     }
 })
 

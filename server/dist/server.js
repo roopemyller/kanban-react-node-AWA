@@ -9,6 +9,7 @@ const index_1 = __importDefault(require("./src/index"));
 const morgan_1 = __importDefault(require("morgan"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
+const path = require("path");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT) || 3001;
@@ -17,6 +18,7 @@ app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use((0, morgan_1.default)("dev"));
+app.use('/uploads', express_1.default.static(path.join(__dirname, '../uploads')));
 // MongoDB database connection
 const mongoDB = "mongodb://127.0.0.1:27017/testdb";
 mongoose_1.default.connect(mongoDB);

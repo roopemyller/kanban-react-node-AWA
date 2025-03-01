@@ -1,3 +1,5 @@
 /server/node_modules
 /server/pnpm-lock.yaml
 /client/pnpm-lock.yaml
+/server/uploads/*
+!uploads/.gitkeep

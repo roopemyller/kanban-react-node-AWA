@@ -40,6 +40,8 @@ let userSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    profilePicture: { type: String, default: '' },
+    createdAt: { type: Date, default: Date.now }
 });
 const User = mongoose_1.default.model('User', userSchema);
 exports.User = User;

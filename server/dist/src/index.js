@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const multer_1 = __importDefault(require("multer"));
+const path_1 = __importDefault(require("path"));
 const inputValidation_1 = __importDefault(require("./validators/inputValidation"));
 const express_validator_1 = require("express-validator");
 const validateToken_1 = require("./middleware/validateToken");
@@ -13,6 +15,29 @@ const User_1 = require("../models/User");
 const Column_1 = require("../models/Column");
 const Board_1 = require("../models/Board");
 const Ticket_1 = require("../models/Ticket");
+// Configure multer for file uploads
+const storage = multer_1.default.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path_1.default.extname(file.originalname));
+    }
+});
+// Upload function for multer, max filesize 5Mb
+const upload = (0, multer_1.default)({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif/;
+        const extname = allowedTypes.test(path_1.default.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (extname && mimetype) {
+            return cb(null, true);
+        }
+        cb(new Error('Only image files are allowed!'));
+    }
+});
 const router = (0, express_1.Router)();
 // Define routes
 router.get('/', (req, res) => {
@@ -86,11 +111,50 @@ router.post('/api/user/login', inputValidation_1.default.login, async (req, res)
         }
         // Create a token and send it to the frontend for authentication
         const token = jsonwebtoken_1.default.sign({ _id: user._id, name: user.name }, process.env.SECRET, { expiresIn: '2h' });
-        res.status(200).json({ token });
+        const profilePicture = user.profilePicture;
+        res.status(200).json({ token, profilePicture });
         return;
     }
     catch (error) {
         console.log(error);
+    }
+});
+// GET: Get user data
+router.get('/api/users/profile', validateToken_1.authenticateUser, async (req, res) => {
+    try {
+        // Get user data (-password) with id.
+        const user = await User_1.User.findById(req.user._id).select('-password');
+        if (user) {
+            res.status(200).json(user);
+        }
+        else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+// PUT: Edit user
+router.put('/api/users/edit', validateToken_1.authenticateUser, upload.single('profilePicture'), async (req, res) => {
+    try {
+        // Get updated data
+        const updates = {};
+        if (req.body.name)
+            updates.name = req.body.name;
+        if (req.file)
+            updates.profilePicture = `/uploads/${req.file.filename}`;
+        // Get user that we are going to update and update it
+        const updatedUser = await User_1.User.findByIdAndUpdate(req.user._id, updates, { new: true }).select('-password');
+        if (!updatedUser) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        res.status(200).json(updatedUser);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 // POST: Create a board

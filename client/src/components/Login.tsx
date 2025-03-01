@@ -35,7 +35,7 @@ const Login = ({ setIsLoggedIn }: LoginProps) => {
         },
         body: JSON.stringify({ email, password }),
       })
-      // If response is ok, get the data set token to local storage and change page to home
+      // If response is ok, get the data set token, name and profile picture to local storage and change page to home
       if(response.ok){
         const data = await response.json()
         console.log(data)
@@ -44,6 +44,7 @@ const Login = ({ setIsLoggedIn }: LoginProps) => {
         const decodedToken: any = jwtDecode(data.token)
         console.log("DecodedToken: ", decodedToken)
         localStorage.setItem('userName', decodedToken.name)
+        localStorage.setItem('profilePicture', data.profilePicture)
         setIsLoggedIn(true)
         setEmail('')
         setPassword('')

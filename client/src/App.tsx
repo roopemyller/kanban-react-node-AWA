@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Home from './components/Home'
 import Login from './components/Login'
 import SignUp from './components/SignUp'
+import Profile from './components/Profile'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { BoardProvider, useBoard } from './context/BoardContext'
 
@@ -19,7 +20,7 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-    {/* Router component that has everything inside it like Header and Routes to Home/Login/Signup */}
+    {/* Router component that has everything inside it like Header and Routes to Home/Login/Signup/Profile */}
     <BrowserRouter>
       <Header setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} setBoard={setBoard}/>
       <Routes>
@@ -31,6 +32,9 @@ const AppContent: React.FC = () => {
             </>} />
           <Route path='/signup' element={<>
             <SignUp/>
+          </>} />
+          <Route path='/profile' element={<>
+            <Profile/>
           </>} />
       </Routes>
     </BrowserRouter>

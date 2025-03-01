@@ -4,6 +4,7 @@ import router from "./src/index"
 import morgan from 'morgan'
 import dotenv from "dotenv"
 import express, {Express} from "express"
+import path = require('path')
 
 dotenv.config()
 const app: Express = express()
@@ -14,6 +15,7 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(morgan("dev"))
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 // MongoDB database connection
 const mongoDB: string = "mongodb://127.0.0.1:27017/testdb"

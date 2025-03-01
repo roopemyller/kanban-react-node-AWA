@@ -82,9 +82,11 @@ To get the minimun 25/50 points for the project the mandatory requirements. Belo
 | Tickets have a visible timestamps when they have been created and modified | 3 |
 | Ticket description uses rich text editor ([react-quill-new](https://www.npmjs.com/package/react-quill-new)) | 2 |
 | A search bar is provided to filter out only those cars that have the searched keyword | 3 |
-| User has the option just to double click any edible content (board title, column title, ticket) to edit it | 4 
+| User has the option just to double click any edible content (board title, column title, ticket) to edit it | 3 
 | Board title is edible | 1 |
-| **Total** | **47** |
+| User can have a profile picture | 2 |
+| Users profile picture and name can be edited through profile settings | 2 |
+| **Total** | **50** |
 
 ## User Manual
 
