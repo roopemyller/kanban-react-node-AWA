@@ -22,7 +22,7 @@ const inputValidation = {
             minNumbers: 1, 
             minSymbols: 1 
             }) 
-            .withMessage('Password must be at least 8 characters long, with at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (#!&?)')
+            .withMessage('Password length at least 8 characters, including at least 1 uppercase and 1 lowercase letter, 1 number, and 1 special character')
     ],
     
     login: [
