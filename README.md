@@ -84,8 +84,8 @@ To get the minimun 25/50 points for the project the mandatory requirements. Belo
 | Tickets have a visible timestamps when they have been created and modified | 3 |
 | Ticket description uses rich text editor ([react-quill-new](https://www.npmjs.com/package/react-quill-new)) | 2 |
 | A search bar is provided to filter out only those cars that have the searched keyword | 3 |
-| User has the option just to double click any edible content (board title, column title, ticket) to edit it | 3 
-| Board title is edible | 1 |
+| User has the option just to double click any editable content (board title, column title, ticket) to edit it | 3 
+| Board title is editable | 1 |
 | User can have a profile picture ([mutler](https://www.npmjs.com/package/multer)) | 2 |
 | Users profile picture and name can be edited through profile settings (mutler) | 2 |
 | **Total** | **50** |
@@ -163,6 +163,7 @@ AI tools were not used in any other way to create this document.
 
 GitHub Copilot (ChatGPT) and ChatGPT was used for
 * Implementation ideas for different features
+* Code generation and autocompletion
 * Troubleshooting bugs
 * Clarification of some functionalities
 
