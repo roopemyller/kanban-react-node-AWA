@@ -15,7 +15,7 @@ const SignUp = () => {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
+    const [errorList, setErrorList] = useState<string[]>([])
 
     // Add user function, called when form is submitted
     const addUser = async () => {
@@ -35,12 +35,17 @@ const SignUp = () => {
             setEmail('')
             setPassword('')
             navigate('/login')
+            setErrorList([])
           }else{
-            setError('Error trying to sign up')
+            setErrorList([])
+            const data = await response.json()
+            data.errors.forEach((e: { msg: string }) => {
+              setErrorList(prevErrors => [...prevErrors, e.msg])
+            })
           }
       } catch (error) {
         console.log(error)
-        setError('Error trying to signup')
+        setErrorList(prevErrors => [...prevErrors, "Unexpected error trying to sign up"])
       }
     }
     return (
@@ -49,8 +54,12 @@ const SignUp = () => {
         <MuiCard variant='outlined'>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, padding:"50px 120px" }}>
                 <Typography variant='h3'>Sign Up</Typography>
-                {error && (
-                  <Typography color="error" textAlign="center">{error}</Typography>
+                {errorList.length > 0 && (
+                  <Box sx={{ color: 'error.main', textAlign: 'center' }}>
+                    {errorList.map((err, index) => (
+                      <Typography variant='body2' key={index} sx={{maxWidth: 220}}>{err}</Typography>
+                    ))}
+                  </Box>
                 )}
                 {/* Form fields */}
                 <FormLabel>Name</FormLabel>
