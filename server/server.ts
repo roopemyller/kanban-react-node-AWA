@@ -4,7 +4,8 @@ import router from "./src/index"
 import morgan from 'morgan'
 import dotenv from "dotenv"
 import express, {Express} from "express"
-import path = require('path')
+import path from 'path'
+import fs from 'fs'
 
 dotenv.config()
 const app: Express = express()
@@ -23,6 +24,17 @@ mongoose.connect(mongoDB)
 mongoose.Promise = Promise
 const db: Connection = mongoose.connection
 db.on("error", console.error.bind(console, "MongoDB connection error"))
+
+
+// Create folder for the profile pictures
+const folderName = path.join(__dirname, '../uploads')
+try {
+  if (!fs.existsSync(folderName)) {
+    fs.mkdirSync(folderName)
+  }
+} catch (err) {
+  console.error(err)
+}
 
 //Define router
 app.use("/", router)

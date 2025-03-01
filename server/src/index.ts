@@ -1,5 +1,5 @@
 import {Request, Response, Router} from "express"
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt'
 import jwt from "jsonwebtoken"
 import multer from 'multer'
 import path from 'path'
@@ -9,10 +9,10 @@ import { validationResult } from 'express-validator'
 import { authenticateUser } from './middleware/validateToken'
 
 import { User } from '../models/User'
-import { Column } from '../models/Column';
-import { Board } from '../models/Board';
-import { Types } from "mongoose";
-import { Ticket } from "../models/Ticket";
+import { Column } from '../models/Column'
+import { Board } from '../models/Board'
+import { Types } from "mongoose"
+import { Ticket } from "../models/Ticket"
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({

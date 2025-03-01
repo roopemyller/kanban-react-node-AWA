@@ -62,6 +62,8 @@ const Profile = () => {
                 setPreviewUrl('')
                 localStorage.setItem('userName', updatedUser.name)
                 localStorage.setItem('profilePicture', updatedUser.profilePicture)
+            } else {
+                alert("Error while editing profile, most likely not a image file or filesize over 5Mb")
             }
         } catch (err) {
             console.log("Error updating user data")
