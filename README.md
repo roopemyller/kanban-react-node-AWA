@@ -43,6 +43,7 @@ pnpm start
 cd client
 pnpm run dev
 ```
+**NOTE!** After running `pnpm run dev` there might come a client side Error about "An error occurred while trying to read the map file at quill.sno.css.map". This error can be dismissed.
 
 ## Tech Stack
 
