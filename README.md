@@ -163,8 +163,8 @@ AI tools were not used in any other way to create this document.
 
 GitHub Copilot (ChatGPT) and ChatGPT was used for
 * Implementation ideas for different features
-* Code generation and autocompletion
+* Example code generation and autocompletion
 * Troubleshooting bugs
 * Clarification of some functionalities
 
-All AI-generated content was reviewed and edited to ensure functionality, correctness and originality.
+All AI-generated content was reviewed and edited/refactored to ensure functionality, correctness and originality.
